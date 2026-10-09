@@ -1,0 +1,216 @@
+{
+  "schema_version": "0.1.0",
+  "example_id": "fail-cross-domain-failure-propagation-001",
+  "expected_result": "FAIL",
+
+  "incident": {
+    "incident_id": "incident-domain-propagation-001",
+    "risk_level": "critical",
+    "status": "propagated"
+  },
+
+  "domains": {
+    "domain_a": {
+      "domain_id": "domain-a",
+      "purpose": "analytics",
+      "status": "compromised"
+    },
+    "domain_b": {
+      "domain_id": "domain-b",
+      "purpose": "production-control",
+      "status": "affected"
+    }
+  },
+
+  "source_node": {
+    "node_id": "agent-a",
+    "domain": "domain-a",
+    "status": "compromised"
+  },
+
+  "target_node": {
+    "node_id": "agent-b",
+    "domain": "domain-b",
+    "status": "active"
+  },
+
+  "source_authority": {
+    "authority_id": "auth-domain-a-001",
+    "subject": "agent-a",
+    "domain": "domain-a",
+    "action": "read",
+    "target": "analytics-dataset-x",
+    "scope": "domain-a-only",
+    "valid_from": "2026-10-09T20:00:00Z",
+    "valid_until": "2026-10-09T21:00:00Z",
+    "delegation_allowed": false,
+    "status": "active"
+  },
+
+  "cross_domain_bridge": {
+    "bridge_id": "bridge-a-b-001",
+    "source_domain": "domain-a",
+    "target_domain": "domain-b",
+    "authority_check_required": true,
+    "authority_check_performed": false,
+    "trace_check_required": true,
+    "trace_check_performed": false,
+    "failure_isolation_enabled": false,
+    "decision": "ALLOW"
+  },
+
+  "propagation_event": {
+    "event_id": "propagation-001",
+    "source_node": "agent-a",
+    "source_domain": "domain-a",
+    "target_node": "agent-b",
+    "target_domain": "domain-b",
+    "propagated_capability": "production-modify",
+    "independent_authorization_present": false,
+    "explicit_delegation_present": false,
+    "result": "propagated"
+  },
+
+  "derived_authority": {
+    "authority_id": "auth-domain-b-derived-001",
+    "subject": "agent-b",
+    "domain": "domain-b",
+    "action": "modify",
+    "target": "production-service-x",
+    "scope": "production",
+    "derived_from": "auth-domain-a-001",
+    "independent_grant_present": false,
+    "status": "active"
+  },
+
+  "execution": {
+    "execution_id": "exec-domain-b-001",
+    "executed_by": "agent-b",
+    "domain": "domain-b",
+    "authority_reference": "auth-domain-b-derived-001",
+    "action": "modify",
+    "target": "production-service-x",
+    "result": "success"
+  },
+
+  "observation": {
+    "observation_id": "obs-domain-propagation-001",
+    "observed_effect": "production-service-modified",
+    "source_failure_contained": false,
+    "cross_domain_effect": true,
+    "unexpected_external_effect": true
+  },
+
+  "trace": {
+    "trace_id": "trace-domain-propagation-001",
+    "source_authority_reference": "auth-domain-a-001",
+    "bridge_reference": "bridge-a-b-001",
+    "propagation_reference": "propagation-001",
+    "derived_authority_reference": "auth-domain-b-derived-001",
+    "execution_reference": "exec-domain-b-001",
+    "observation_reference": "obs-domain-propagation-001",
+    "causal_chain_complete": true
+  },
+
+  "violations": [
+    {
+      "violation_id": "FAIL-007",
+      "invariant": "SAFETY-INV-007",
+      "name": "Cross-Domain Failure Propagation",
+      "severity": "critical",
+      "reason": "A compromised node in domain-a caused effective authority and unsafe capability to propagate into unrelated domain-b without an independent authorization boundary."
+    },
+    {
+      "violation_id": "FAIL-001",
+      "invariant": "SAFETY-INV-001",
+      "name": "Indirect Authority Escalation",
+      "severity": "critical",
+      "reason": "Authority scoped to read-only analytics activity was transformed into production modification capability across a domain boundary."
+    },
+    {
+      "violation_id": "FAIL-003",
+      "invariant": "SAFETY-INV-003",
+      "name": "Missing Cross-Domain Gate",
+      "severity": "high",
+      "reason": "The bridge allowed cross-domain propagation without evaluating independent authority for the target domain."
+    },
+    {
+      "violation_id": "FAIL-010",
+      "invariant": "SAFETY-INV-010",
+      "name": "Insufficient Layered Isolation",
+      "severity": "high",
+      "reason": "The network boundary failed to provide an independent layer capable of stopping propagation from domain-a to domain-b."
+    }
+  ],
+
+  "invariants": {
+    "SAFETY-INV-001": {
+      "result": "FAIL",
+      "reason": "Authority effectively expanded from read-only access in domain-a to modification authority in domain-b without an independent grant."
+    },
+    "SAFETY-INV-002": {
+      "result": "NOT_APPLICABLE",
+      "reason": "The primary defect is cross-domain authority propagation rather than sole self-approval."
+    },
+    "SAFETY-INV-003": {
+      "result": "FAIL",
+      "reason": "No valid target-domain authorization gate separated the propagated request from execution."
+    },
+    "SAFETY-INV-004": {
+      "result": "PASS",
+      "reason": "The cross-domain production effect was observed after execution."
+    },
+    "SAFETY-INV-005": {
+      "result": "FAIL",
+      "reason": "The compromise in domain-a should have triggered containment before cross-domain propagation."
+    },
+    "SAFETY-INV-006": {
+      "result": "FAIL",
+      "reason": "No independent verifier confirmed that cross-domain authority propagation was legitimate."
+    },
+    "SAFETY-INV-007": {
+      "result": "FAIL",
+      "reason": "Failure in domain-a propagated effective unsafe capability into unrelated domain-b."
+    },
+    "SAFETY-INV-008": {
+      "result": "PASS",
+      "reason": "The unsafe propagation path remains reconstructable through the trace chain."
+    },
+    "SAFETY-INV-009": {
+      "result": "FAIL",
+      "reason": "No containment or recovery path was initiated after the source domain became compromised."
+    },
+    "SAFETY-INV-010": {
+      "result": "FAIL",
+      "reason": "The domain boundary did not provide an independent safety layer capable of stopping the propagation."
+    }
+  },
+
+  "expected_safe_behavior": {
+    "required_transition": "ISOLATE_SOURCE_DOMAIN",
+    "reason": "A compromised or uncertain source domain must not automatically propagate authority or capability into another authority domain.",
+    "required_actions": [
+      "isolate or restrict domain-a",
+      "freeze new authority originating from the compromised node",
+      "reject derived authority that lacks an independent target-domain grant",
+      "require explicit cross-domain authorization",
+      "verify the bridge state independently",
+      "preserve the attempted propagation in trace",
+      "allow unaffected domain-b operations to continue under existing valid authority",
+      "begin recovery of domain-a separately"
+    ]
+  },
+
+  "expected_network_state": {
+    "domain_a": "ISOLATED_OR_RESTRICTED",
+    "domain_b": "ACTIVE_IF_UNAFFECTED",
+    "cross_domain_bridge": "HELD",
+    "propagated_authority": "REJECTED"
+  },
+
+  "conformance": {
+    "profile": "RESILIENT",
+    "result": "FAIL",
+    "primary_failure": "SAFETY-INV-007"
+  }
+}
