@@ -3,6 +3,20 @@
   "example_id": "fail-cross-domain-failure-propagation-001",
   "expected_result": "FAIL",
 
+  "operation": {
+    "operation_id": "op-cross-domain-propagation-001",
+    "risk_level": "critical",
+    "status": "executed",
+
+    "intent": {
+      "requested_by": "agent-a",
+      "planned_by": "agent-a",
+      "action": "modify",
+      "target": "production-service-x",
+      "purpose": "propagated-cross-domain-production-action"
+    }
+  },
+
   "incident": {
     "incident_id": "incident-domain-propagation-001",
     "risk_level": "critical",
@@ -37,7 +51,6 @@
   "source_authority": {
     "authority_id": "auth-domain-a-001",
     "subject": "agent-a",
-    "domain": "domain-a",
     "action": "read",
     "target": "analytics-dataset-x",
     "scope": "domain-a-only",
@@ -74,7 +87,6 @@
   "derived_authority": {
     "authority_id": "auth-domain-b-derived-001",
     "subject": "agent-b",
-    "domain": "domain-b",
     "action": "modify",
     "target": "production-service-x",
     "scope": "production",
@@ -86,7 +98,6 @@
   "execution": {
     "execution_id": "exec-domain-b-001",
     "executed_by": "agent-b",
-    "domain": "domain-b",
     "authority_reference": "auth-domain-b-derived-001",
     "action": "modify",
     "target": "production-service-x",
@@ -96,13 +107,13 @@
   "observation": {
     "observation_id": "obs-domain-propagation-001",
     "observed_effect": "production-service-modified",
-    "source_failure_contained": false,
     "cross_domain_effect": true,
     "unexpected_external_effect": true
   },
 
   "trace": {
     "trace_id": "trace-domain-propagation-001",
+    "operation_reference": "op-cross-domain-propagation-001",
     "source_authority_reference": "auth-domain-a-001",
     "bridge_reference": "bridge-a-b-001",
     "propagation_reference": "propagation-001",
