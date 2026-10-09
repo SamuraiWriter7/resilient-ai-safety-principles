@@ -1,0 +1,1345 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/resilient-ai-safety-principles/schemas/safety-assessment.schema.json",
+  "title": "Resilient AI Safety Assessment",
+  "description": "Machine-readable assessment format for Resilient AI Safety Principles v0.1 examples.",
+  "type": "object",
+  "additionalProperties": true,
+
+  "required": [
+    "schema_version",
+    "example_id",
+    "expected_result",
+    "operation",
+    "invariants",
+    "conformance"
+  ],
+
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+
+    "example_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+
+    "expected_result": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL"
+      ]
+    },
+
+    "operation": {
+      "$ref": "#/$defs/operation"
+    },
+
+    "incident": {
+      "$ref": "#/$defs/incident"
+    },
+
+    "roles": {
+      "$ref": "#/$defs/roles"
+    },
+
+    "evaluation": {
+      "$ref": "#/$defs/evaluation"
+    },
+
+    "intent_assessment": {
+      "$ref": "#/$defs/intentAssessment"
+    },
+
+    "authority": {
+      "$ref": "#/$defs/authority"
+    },
+
+    "initial_authority": {
+      "$ref": "#/$defs/authority"
+    },
+
+    "source_authority": {
+      "$ref": "#/$defs/authority"
+    },
+
+    "derived_authority": {
+      "$ref": "#/$defs/authority"
+    },
+
+    "authority_request": {
+      "$ref": "#/$defs/authorityRequest"
+    },
+
+    "authority_escalation": {
+      "$ref": "#/$defs/authorityEscalation"
+    },
+
+    "approval": {
+      "$ref": "#/$defs/approval"
+    },
+
+    "pre_execution_gate": {
+      "$ref": "#/$defs/gate"
+    },
+
+    "initial_gate": {
+      "$ref": "#/$defs/gate"
+    },
+
+    "cross_domain_bridge": {
+      "$ref": "#/$defs/crossDomainBridge"
+    },
+
+    "execution": {
+      "$ref": "#/$defs/execution"
+    },
+
+    "observation": {
+      "$ref": "#/$defs/observation"
+    },
+
+    "verification": {
+      "$ref": "#/$defs/verification"
+    },
+
+    "trace": {
+      "$ref": "#/$defs/trace"
+    },
+
+    "anomaly": {
+      "$ref": "#/$defs/anomaly"
+    },
+
+    "containment": {
+      "$ref": "#/$defs/containment"
+    },
+
+    "recovery": {
+      "$ref": "#/$defs/recovery"
+    },
+
+    "release_event": {
+      "$ref": "#/$defs/releaseEvent"
+    },
+
+    "violations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/violation"
+      },
+      "uniqueItems": false
+    },
+
+    "invariants": {
+      "$ref": "#/$defs/invariants"
+    },
+
+    "expected_safe_behavior": {
+      "$ref": "#/$defs/expectedSafeBehavior"
+    },
+
+    "conformance": {
+      "$ref": "#/$defs/conformance"
+    }
+  },
+
+  "$defs": {
+    "operation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "operation_id",
+        "risk_level",
+        "status",
+        "intent"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "intent": {
+          "$ref": "#/$defs/intent"
+        }
+      }
+    },
+
+    "intent": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "action",
+        "target",
+        "purpose"
+      ],
+      "properties": {
+        "requested_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "planned_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "action": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+
+    "incident": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "incident_id": {
+          "type": "string"
+        },
+
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+
+    "roles": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "planner": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "auditor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "approver": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "executor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "verifier": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "present": {
+          "type": "boolean"
+        },
+
+        "evaluation_id": {
+          "type": "string"
+        },
+
+        "evaluated_by": {
+          "type": "string"
+        },
+
+        "purpose_confirmed": {
+          "type": "boolean"
+        },
+
+        "target_confirmed": {
+          "type": "boolean"
+        },
+
+        "required_authority_confirmed": {
+          "type": "boolean"
+        },
+
+        "expected_effect_reviewed": {
+          "type": "boolean"
+        },
+
+        "reversibility_reviewed": {
+          "type": "boolean"
+        },
+
+        "human_impact_reviewed": {
+          "type": "boolean"
+        },
+
+        "alternatives_reviewed": {
+          "type": "boolean"
+        },
+
+        "result": {
+          "type": "string"
+        }
+      }
+    },
+
+    "intentAssessment": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "assessment_id": {
+          "type": "string"
+        },
+
+        "evaluated_by": {
+          "type": "string"
+        },
+
+        "classification": {
+          "type": "string"
+        },
+
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+
+    "authority": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "present": {
+          "type": "boolean"
+        },
+
+        "authority_id": {
+          "type": "string"
+        },
+
+        "subject": {
+          "type": "string"
+        },
+
+        "action": {
+          "type": "string"
+        },
+
+        "target": {
+          "type": "string"
+        },
+
+        "scope": {
+          "type": [
+            "string",
+            "object",
+            "null"
+          ]
+        },
+
+        "valid_from": {
+          "$ref": "#/$defs/dateTime"
+        },
+
+        "valid_until": {
+          "$ref": "#/$defs/dateTime"
+        },
+
+        "max_operations": {
+          "type": "integer",
+          "minimum": 0
+        },
+
+        "delegation_allowed": {
+          "type": "boolean"
+        },
+
+        "status": {
+          "type": "string"
+        },
+
+        "approved_by": {
+          "type": "string"
+        },
+
+        "issued_by": {
+          "type": "string"
+        },
+
+        "previous_authority_reference": {
+          "type": "string"
+        },
+
+        "derived_from": {
+          "type": "string"
+        },
+
+        "independent_grant_present": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "authorityRequest": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "request_id": {
+          "type": "string"
+        },
+
+        "requested_by": {
+          "type": "string"
+        },
+
+        "requested_action": {
+          "type": "string"
+        },
+
+        "requested_target": {
+          "type": "string"
+        },
+
+        "requested_scope": {
+          "type": [
+            "string",
+            "object"
+          ]
+        },
+
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+
+    "authorityEscalation": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "authority_id": {
+          "type": "string"
+        },
+
+        "subject": {
+          "type": "string"
+        },
+
+        "previous_authority_reference": {
+          "type": "string"
+        },
+
+        "new_action": {
+          "type": "string"
+        },
+
+        "new_target": {
+          "type": "string"
+        },
+
+        "new_scope": {
+          "type": [
+            "string",
+            "object"
+          ]
+        },
+
+        "approved_by": {
+          "type": "string"
+        },
+
+        "independent_authorization_present": {
+          "type": "boolean"
+        },
+
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+
+    "approval": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "present": {
+          "type": "boolean"
+        },
+
+        "approval_id": {
+          "type": "string"
+        },
+
+        "action_reference": {
+          "type": "string"
+        },
+
+        "approved_by": {
+          "type": "string"
+        },
+
+        "producer_reference": {
+          "type": "string"
+        },
+
+        "independent_final_approval": {
+          "type": "boolean"
+        },
+
+        "decision": {
+          "type": "string",
+          "enum": [
+            "APPROVE",
+            "DENY",
+            "HOLD",
+            "REQUIRE_REVIEW"
+          ]
+        }
+      }
+    },
+
+    "gate": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "present": {
+          "type": "boolean"
+        },
+
+        "gate_id": {
+          "type": "string"
+        },
+
+        "evaluated_by": {
+          "type": "string"
+        },
+
+        "authority_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "approval_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "authority_valid": {
+          "type": "boolean"
+        },
+
+        "authority_expired": {
+          "type": "boolean"
+        },
+
+        "authority_revoked": {
+          "type": "boolean"
+        },
+
+        "target_within_scope": {
+          "type": "boolean"
+        },
+
+        "action_within_scope": {
+          "type": "boolean"
+        },
+
+        "resource_within_limit": {
+          "type": "boolean"
+        },
+
+        "independent_approval_present": {
+          "type": "boolean"
+        },
+
+        "independent_final_approval_present": {
+          "type": "boolean"
+        },
+
+        "independent_authority_validation": {
+          "type": "boolean"
+        },
+
+        "observable_effect_checked": {
+          "type": "boolean"
+        },
+
+        "target_scope_checked": {
+          "type": "boolean"
+        },
+
+        "impact_boundary_checked": {
+          "type": "boolean"
+        },
+
+        "decision": {
+          "type": "string",
+          "enum": [
+            "ALLOW",
+            "HOLD",
+            "DENY",
+            "REQUIRE_REVIEW"
+          ]
+        }
+      }
+    },
+
+    "execution": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "execution_id": {
+          "type": "string"
+        },
+
+        "executed_by": {
+          "type": "string"
+        },
+
+        "authority_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "approval_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "gate_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "action": {
+          "type": "string"
+        },
+
+        "target": {
+          "type": "string"
+        },
+
+        "operations_consumed": {
+          "type": "integer",
+          "minimum": 0
+        },
+
+        "result": {
+          "type": "string"
+        }
+      }
+    },
+
+    "observation": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "observation_id": {
+          "type": "string"
+        },
+
+        "observed_by": {
+          "type": "string"
+        },
+
+        "expected_effect": {
+          "type": "string"
+        },
+
+        "observed_effect": {
+          "type": "string"
+        },
+
+        "effect_classification": {
+          "type": "string"
+        },
+
+        "unexpected_external_effect": {
+          "type": "boolean"
+        },
+
+        "independent_observation_present": {
+          "type": "boolean"
+        },
+
+        "records_affected": {
+          "type": "integer",
+          "minimum": 0
+        },
+
+        "external_transfer": {
+          "type": "boolean"
+        },
+
+        "cross_domain_effect": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "verification": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "verification_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "verified_by": {
+          "type": "string"
+        },
+
+        "execution_reference": {
+          "type": "string"
+        },
+
+        "independent_verifier_present": {
+          "type": "boolean"
+        },
+
+        "fresh_external_evidence_present": {
+          "type": "boolean"
+        },
+
+        "decision": {
+          "type": "string"
+        },
+
+        "reason": {
+          "type": "string"
+        },
+
+        "assigned_verifier": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+
+    "trace": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "trace_id"
+      ],
+      "properties": {
+        "trace_id": {
+          "type": "string"
+        },
+
+        "request_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "operation_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "evaluation_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "authority_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "approval_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "gate_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "execution_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "observation_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "containment_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "recovery_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "causal_chain_complete": {
+          "type": "boolean"
+        },
+
+        "missing_links": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+
+    "anomaly": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "anomaly_id": {
+          "type": "string"
+        },
+
+        "detected_by": {
+          "type": "string"
+        },
+
+        "type": {
+          "type": "string"
+        },
+
+        "severity": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+
+    "containment": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+
+        "containment_id": {
+          "type": "string"
+        },
+
+        "trigger_reference": {
+          "type": "string"
+        },
+
+        "state": {
+          "type": "string",
+          "enum": [
+            "HELD",
+            "QUARANTINED",
+            "ISOLATED",
+            "RESTRICTED"
+          ]
+        },
+
+        "authority_frozen": {
+          "type": "boolean"
+        },
+
+        "external_execution_blocked": {
+          "type": "boolean"
+        },
+
+        "state_preserved": {
+          "type": "boolean"
+        },
+
+        "evidence_preserved": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "recovery": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+
+        "recovery_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "status": {
+          "type": "string"
+        },
+
+        "successor_operation_defined": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "releaseEvent": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "release_id": {
+          "type": "string"
+        },
+
+        "released_by": {
+          "type": "string"
+        },
+
+        "from_state": {
+          "type": "string"
+        },
+
+        "to_state": {
+          "type": "string"
+        },
+
+        "independent_verification_present": {
+          "type": "boolean"
+        },
+
+        "fresh_authority_present": {
+          "type": "boolean"
+        },
+
+        "fresh_approval_present": {
+          "type": "boolean"
+        },
+
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+
+    "crossDomainBridge": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "bridge_id": {
+          "type": "string"
+        },
+
+        "source_domain": {
+          "type": "string"
+        },
+
+        "target_domain": {
+          "type": "string"
+        },
+
+        "authority_check_required": {
+          "type": "boolean"
+        },
+
+        "authority_check_performed": {
+          "type": "boolean"
+        },
+
+        "trace_check_required": {
+          "type": "boolean"
+        },
+
+        "trace_check_performed": {
+          "type": "boolean"
+        },
+
+        "failure_isolation_enabled": {
+          "type": "boolean"
+        },
+
+        "decision": {
+          "type": "string"
+        }
+      }
+    },
+
+    "violation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "violation_id",
+        "invariant",
+        "name",
+        "severity",
+        "reason"
+      ],
+      "properties": {
+        "violation_id": {
+          "type": "string",
+          "pattern": "^FAIL-[0-9]{3}$"
+        },
+
+        "invariant": {
+          "$ref": "#/$defs/invariantId"
+        },
+
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "severity": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+
+    "invariants": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "SAFETY-INV-001",
+        "SAFETY-INV-002",
+        "SAFETY-INV-003",
+        "SAFETY-INV-004",
+        "SAFETY-INV-005",
+        "SAFETY-INV-006",
+        "SAFETY-INV-007",
+        "SAFETY-INV-008",
+        "SAFETY-INV-009",
+        "SAFETY-INV-010"
+      ],
+      "properties": {
+        "SAFETY-INV-001": {
+          "$ref": "#/$defs/invariantAssessment"
+        },
+
+        "SAFETY-INV-002": {
+          "$ref": "#/$defs/invariantAssessment"
+        },
+
+        "SAFETY-INV-003": {
+          "$ref": "#/$defs/invariantAssessment"
+        },
+
+        "SAFETY-INV-004": {
+          "$ref": "#/$defs/invariantAssessment"
+        },
+
+        "SAFETY-INV-005": {
+          "$ref": "#/$defs/invariantAssessment"
+        },
+
+        "SAFETY-INV-006": {
+          "$ref": "#/$defs/invariantAssessment"
+        },
+
+        "SAFETY-INV-007": {
+          "$ref": "#/$defs/invariantAssessment"
+        },
+
+        "SAFETY-INV-008": {
+          "$ref": "#/$defs/invariantAssessment"
+        },
+
+        "SAFETY-INV-009": {
+          "$ref": "#/$defs/invariantAssessment"
+        },
+
+        "SAFETY-INV-010": {
+          "$ref": "#/$defs/invariantAssessment"
+        }
+      }
+    },
+
+    "invariantAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "result",
+        "reason"
+      ],
+      "properties": {
+        "result": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL",
+            "NOT_APPLICABLE"
+          ]
+        },
+
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+
+    "invariantId": {
+      "type": "string",
+      "enum": [
+        "SAFETY-INV-001",
+        "SAFETY-INV-002",
+        "SAFETY-INV-003",
+        "SAFETY-INV-004",
+        "SAFETY-INV-005",
+        "SAFETY-INV-006",
+        "SAFETY-INV-007",
+        "SAFETY-INV-008",
+        "SAFETY-INV-009",
+        "SAFETY-INV-010"
+      ]
+    },
+
+    "expectedSafeBehavior": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "required_transition": {
+          "type": "string"
+        },
+
+        "reason": {
+          "type": "string"
+        },
+
+        "required_actions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+
+    "conformance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "result"
+      ],
+      "properties": {
+        "profile": {
+          "type": "string",
+          "enum": [
+            "BASIC",
+            "CONTROLLED",
+            "RESILIENT"
+          ]
+        },
+
+        "result": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL"
+          ]
+        },
+
+        "primary_failure": {
+          "$ref": "#/$defs/invariantId"
+        }
+      },
+
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "result": {
+                "const": "FAIL"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "then": {
+            "required": [
+              "primary_failure"
+            ]
+          }
+        }
+      ]
+    },
+
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "expected_result": {
+            "const": "PASS"
+          }
+        },
+        "required": [
+          "expected_result"
+        ]
+      },
+      "then": {
+        "properties": {
+          "conformance": {
+            "properties": {
+              "result": {
+                "const": "PASS"
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "expected_result": {
+            "const": "FAIL"
+          }
+        },
+        "required": [
+          "expected_result"
+        ]
+      },
+      "then": {
+        "properties": {
+          "conformance": {
+            "properties": {
+              "result": {
+                "const": "FAIL"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
