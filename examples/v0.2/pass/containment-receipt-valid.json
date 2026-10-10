@@ -1,0 +1,104 @@
+{
+  "schema_version": "0.2.0",
+  "containment_receipt_id": "CONT-RECEIPT-001",
+
+  "subject": {
+    "subject_id": "op-production-update-001",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "trigger": {
+    "trigger_id": "ANOMALY-001",
+    "trigger_type": "TARGET_STATE_CHANGED",
+    "severity": "high",
+    "detected_by": "agent-auditor-001",
+    "detected_at": "2026-10-10T17:10:00Z",
+    "description": "The production target state changed after authorization and before execution.",
+    "evidence_reference": "EVIDENCE-TARGET-STATE-001"
+  },
+
+  "prior_state": "AUTHORIZED",
+
+  "containment_state": "HELD",
+
+  "restrictions": {
+    "new_authority_blocked": true,
+    "external_execution_blocked": true,
+    "tool_use_restricted": true,
+    "state_mutation_restricted": true,
+    "communication_restricted": false,
+    "resource_restricted": true
+  },
+
+  "authority_effect": {
+    "authority_reference": "AUTH-ENV-001",
+    "authority_frozen": true,
+    "authority_revoked": false,
+    "authority_reduced": false,
+    "new_authority_blocked": true
+  },
+
+  "network_effect": {
+    "connectivity_state": "RESTRICTED",
+    "outbound_blocked": true,
+    "inbound_blocked": false,
+    "cross_domain_blocked": true
+  },
+
+  "evidence_preservation": {
+    "state_preserved": true,
+    "trace_preserved": true,
+    "trigger_evidence_preserved": true,
+    "snapshot_reference": "SNAPSHOT-001",
+    "evidence_bundle_reference": "EVIDENCE-BUNDLE-001",
+    "tamper_evident": true
+  },
+
+  "controller": {
+    "controller_id": "safety-service-001",
+    "controller_type": "SAFETY_SERVICE",
+    "independent_from_subject": true
+  },
+
+  "verification_required": true,
+  "verification_reference": null,
+
+  "recovery_required": true,
+  "recovery_reference": null,
+
+  "contained_at": "2026-10-10T17:10:02Z",
+
+  "expires_at": null,
+
+  "reason": "The target state changed after authorization. Execution is held pending independent verification and fresh authorization.",
+
+  "trace_reference": "TRACE-CONT-001",
+
+  "metadata": {
+    "risk_level": "high",
+    "expected_result": "PASS",
+    "profile": "RESILIENT",
+
+    "invariants": {
+      "SAFETY-INV-014": {
+        "result": "PASS",
+        "reason": "The safety-relevant transition from AUTHORIZED to HELD is explicitly represented by a Containment Receipt."
+      },
+
+      "SAFETY-INV-015": {
+        "result": "PASS",
+        "reason": "System state, trace evidence, trigger evidence, and a containment snapshot are preserved for verification and recovery."
+      }
+    },
+
+    "expected_next_steps": [
+      "assign an independent verifier",
+      "evaluate the changed target state",
+      "determine whether the prior authority assumptions remain valid",
+      "issue a Verification Record",
+      "create a Recovery Receipt before any transition out of HELD",
+      "require fresh authorization before execution resumes"
+    ]
+  }
+}
