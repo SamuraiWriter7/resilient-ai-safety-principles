@@ -1,0 +1,111 @@
+{
+  "schema_version": "0.2.0",
+  "authority_envelope_id": "AUTH-ENV-001",
+
+  "subject": {
+    "subject_id": "agent-executor-001",
+    "subject_type": "AI_AGENT",
+    "domain": "production-maintenance"
+  },
+
+  "permissions": {
+    "actions": [
+      "modify"
+    ],
+
+    "targets": [
+      {
+        "target_id": "production-config-x",
+        "target_type": "configuration",
+        "domain": "production-maintenance"
+      }
+    ],
+
+    "scope": {
+      "resource_path": "/services/service-x/config",
+      "allowed_fields": [
+        "timeout_seconds",
+        "retry_limit"
+      ],
+      "environment": "production"
+    }
+  },
+
+  "validity": {
+    "valid_from": "2026-10-10T16:00:00Z",
+    "valid_until": "2099-10-10T17:00:00Z",
+    "renewable": false,
+    "renewal_requires_reapproval": true
+  },
+
+  "limits": {
+    "max_operations": 1,
+    "max_runtime_seconds": 300,
+    "max_resource_units": 10,
+    "max_cost": 5,
+    "max_data_items": 2,
+    "max_fan_out": 1
+  },
+
+  "impact_boundary": {
+    "max_affected_entities": 1,
+    "external_effect_allowed": true,
+    "cross_domain_effect_allowed": false,
+    "irreversible_effect_allowed": false,
+    "financial_limit": 0
+  },
+
+  "delegation": {
+    "allowed": false,
+    "max_depth": 0,
+    "must_reduce_scope": true,
+    "allowed_subject_types": []
+  },
+
+  "issuer": {
+    "issuer_id": "authority-service-001",
+    "issuer_type": "AUTHORITY_SERVICE",
+    "domain": "safety-control"
+  },
+
+  "approval": {
+    "approval_id": "APPROVAL-001",
+    "approved_by": "human-approver-001",
+    "independent_from_subject": true,
+    "approved_at": "2026-10-10T15:59:30Z"
+  },
+
+  "status": "ACTIVE",
+
+  "supersedes": null,
+  "derived_from": null,
+
+  "reason": "Authorize one bounded production configuration update after independent review.",
+
+  "trace_reference": "TRACE-AUTH-001",
+
+  "issued_at": "2026-10-10T16:00:00Z",
+
+  "metadata": {
+    "risk_level": "high",
+    "expected_result": "PASS",
+    "profile": "RESILIENT",
+
+    "invariants": {
+      "SAFETY-INV-011": {
+        "result": "PASS",
+        "reason": "The high-risk execution subject has an explicit machine-readable Authority Envelope."
+      },
+
+      "SAFETY-INV-012": {
+        "result": "PASS",
+        "reason": "The envelope was issued by authority-service-001 and independently approved; the subject cannot expand its own authority."
+      },
+
+      "SAFETY-INV-013": {
+        "result": "PASS",
+        "reason": "The Authority Envelope is ACTIVE and remains within its declared validity window."
+      }
+    }
+  }
+}
