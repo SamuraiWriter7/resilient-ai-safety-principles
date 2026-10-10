@@ -1,0 +1,250 @@
+{
+  "schema_version": "0.3.0",
+  "bundle_id": "BUNDLE-BROKEN-CHAIN-001",
+
+  "operation": {
+    "operation_id": "op-production-update-070",
+    "risk_level": "high",
+    "status": "RECOVERED",
+    "parent_operation_id": null,
+    "successor_operation_id": "op-production-update-070-r1"
+  },
+
+  "subject": {
+    "subject_id": "op-production-update-070",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "receipts": {
+    "authority": {
+      "receipt_id": "AUTH-ENV-070",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-070",
+      "operation_id": "op-production-update-070",
+      "trace_reference": "TRACE-AUTH-070",
+      "issued_at": "2026-10-11T09:20:00Z"
+    },
+
+    "containment": {
+      "receipt_id": "CONT-RECEIPT-070",
+      "receipt_type": "CONTAINMENT_RECEIPT",
+      "subject_id": "op-production-update-070",
+      "operation_id": "op-production-update-070",
+      "trace_reference": "TRACE-CONT-070",
+      "issued_at": "2026-10-11T09:30:00Z"
+    },
+
+    "verification": {
+      "receipt_id": "VERIFY-070",
+      "receipt_type": "VERIFICATION_RECORD",
+      "subject_id": "op-production-update-070",
+      "operation_id": "op-production-update-070",
+      "trace_reference": "TRACE-VERIFY-070",
+      "issued_at": "2026-10-11T09:40:00Z"
+    },
+
+    "recovery": {
+      "receipt_id": "RECOVERY-070",
+      "receipt_type": "RECOVERY_RECEIPT",
+      "subject_id": "op-production-update-070",
+      "operation_id": "op-production-update-070",
+      "trace_reference": "TRACE-RECOVERY-070",
+      "issued_at": "2026-10-11T09:50:00Z"
+    },
+
+    "successor_authority": {
+      "receipt_id": "AUTH-ENV-071",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-070-r1",
+      "operation_id": "op-production-update-070-r1",
+      "trace_reference": "TRACE-AUTH-071",
+      "issued_at": "2026-10-11T09:51:00Z"
+    }
+  },
+
+  "chain": {
+    "links": [
+      {
+        "from": "AUTH-ENV-070",
+        "to": "op-production-update-070",
+        "relation": "AUTHORIZES"
+      },
+      {
+        "from": "op-production-update-070",
+        "to": "CONT-RECEIPT-070",
+        "relation": "TRIGGERED_CONTAINMENT"
+      },
+      {
+        "from": "VERIFY-070",
+        "to": "RECOVERY-070",
+        "relation": "JUSTIFIES_RECOVERY"
+      },
+      {
+        "from": "RECOVERY-070",
+        "to": "AUTH-ENV-071",
+        "relation": "REAUTHORIZES"
+      },
+      {
+        "from": "op-production-update-070",
+        "to": "op-production-update-070-r1",
+        "relation": "SUCCEEDS"
+      }
+    ],
+
+    "complete": false,
+
+    "missing_links": [
+      "CONT-RECEIPT-070 -> VERIFY-070"
+    ],
+
+    "conflicting_final_states": false,
+
+    "declared_final_states": [
+      "REAUTHORIZED"
+    ],
+
+    "replay_detected": false,
+    "replayed_receipt_ids": []
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BUNDLE-BROKEN-CHAIN-001",
+    "all_receipts_reachable": true,
+
+    "reachable_receipt_ids": [
+      "AUTH-ENV-070",
+      "CONT-RECEIPT-070",
+      "VERIFY-070",
+      "RECOVERY-070",
+      "AUTH-ENV-071"
+    ],
+
+    "missing_receipt_ids": [],
+
+    "trace_continuity": "PARTIAL"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-11T09:20:00Z",
+  "closed_at": null,
+
+  "reason": "All expected receipts are present, but the causal transition from containment to verification is missing, leaving the safety chain incomplete.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "cross_receipt_checks": {
+      "authority_operation_match": true,
+      "containment_operation_match": true,
+      "verification_operation_match": true,
+      "recovery_operation_match": true,
+      "subject_continuity_valid": true,
+      "receipt_identity_consistent": true,
+      "authority_binding_valid": true,
+      "containment_cause_valid": true,
+      "verification_containment_link_present": false,
+      "recovery_verification_link_present": true,
+      "successor_authority_link_present": true,
+      "trace_continuity_valid": false
+    },
+
+    "broken_chain": {
+      "expected_sequence": [
+        "AUTH-ENV-070",
+        "op-production-update-070",
+        "CONT-RECEIPT-070",
+        "VERIFY-070",
+        "RECOVERY-070",
+        "AUTH-ENV-071"
+      ],
+
+      "missing_transition": {
+        "from": "CONT-RECEIPT-070",
+        "to": "VERIFY-070",
+        "expected_relation": "VERIFIES"
+      },
+
+      "all_receipts_present": true,
+      "causal_chain_complete": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-027",
+        "invariant": "SAFETY-INV-027",
+        "name": "Broken Safety Chain",
+        "severity": "critical",
+        "reason": "The bundle contains all expected receipts but lacks the causal link connecting CONT-RECEIPT-070 to VERIFY-070."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-021": {
+        "result": "PASS",
+        "reason": "All receipts belong to the same declared safety event or its explicit successor."
+      },
+
+      "SAFETY-INV-022": {
+        "result": "PASS",
+        "reason": "Subject continuity is preserved."
+      },
+
+      "SAFETY-INV-023": {
+        "result": "PASS",
+        "reason": "AUTH-ENV-070 is explicitly bound to op-production-update-070."
+      },
+
+      "SAFETY-INV-024": {
+        "result": "PASS",
+        "reason": "CONT-RECEIPT-070 is causally linked to the operation."
+      },
+
+      "SAFETY-INV-025": {
+        "result": "FAIL",
+        "reason": "VERIFY-070 is not explicitly linked to CONT-RECEIPT-070."
+      },
+
+      "SAFETY-INV-026": {
+        "result": "PASS",
+        "reason": "RECOVERY-070 is explicitly justified by VERIFY-070."
+      },
+
+      "SAFETY-INV-027": {
+        "result": "FAIL",
+        "reason": "The overall safety chain contains an unexplained missing transition between containment and verification."
+      },
+
+      "SAFETY-INV-028": {
+        "result": "PASS",
+        "reason": "Only one final state is declared."
+      },
+
+      "SAFETY-INV-029": {
+        "result": "PASS",
+        "reason": "No receipt replay is detected."
+      },
+
+      "SAFETY-INV-030": {
+        "result": "FAIL",
+        "reason": "All receipt IDs are reachable, but trace continuity is PARTIAL because one causal transition is absent."
+      }
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject the bundle as a complete recovery history",
+        "keep any resumed execution blocked",
+        "identify or reconstruct the missing containment-to-verification transition",
+        "verify that VERIFY-070 actually evaluated CONT-RECEIPT-070",
+        "add the missing causal link if supported by preserved evidence",
+        "otherwise create a new Verification Record",
+        "preserve the broken-chain condition in trace",
+        "mark the bundle complete only after every required transition is causally linked"
+      ]
+    }
+  }
+}
