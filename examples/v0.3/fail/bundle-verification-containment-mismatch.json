@@ -1,0 +1,200 @@
+{
+  "schema_version": "0.3.0",
+  "bundle_id": "BUNDLE-VERIFY-CONT-MISMATCH-001",
+
+  "operation": {
+    "operation_id": "op-production-update-050",
+    "risk_level": "high",
+    "status": "VERIFIED",
+    "parent_operation_id": null,
+    "successor_operation_id": null
+  },
+
+  "subject": {
+    "subject_id": "op-production-update-050",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "receipts": {
+    "authority": {
+      "receipt_id": "AUTH-ENV-050",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-050",
+      "operation_id": "op-production-update-050",
+      "trace_reference": "TRACE-AUTH-050",
+      "issued_at": "2026-10-11T08:10:00Z"
+    },
+
+    "containment": {
+      "receipt_id": "CONT-RECEIPT-050",
+      "receipt_type": "CONTAINMENT_RECEIPT",
+      "subject_id": "op-production-update-050",
+      "operation_id": "op-production-update-050",
+      "trace_reference": "TRACE-CONT-050",
+      "issued_at": "2026-10-11T08:20:00Z"
+    },
+
+    "verification": {
+      "receipt_id": "VERIFY-050",
+      "receipt_type": "VERIFICATION_RECORD",
+      "subject_id": "op-production-update-050",
+      "operation_id": "op-production-update-050",
+      "trace_reference": "TRACE-VERIFY-050",
+      "issued_at": "2026-10-11T08:30:00Z"
+    },
+
+    "recovery": null,
+    "successor_authority": null
+  },
+
+  "chain": {
+    "links": [
+      {
+        "from": "AUTH-ENV-050",
+        "to": "op-production-update-050",
+        "relation": "AUTHORIZES"
+      },
+      {
+        "from": "op-production-update-050",
+        "to": "CONT-RECEIPT-050",
+        "relation": "TRIGGERED_CONTAINMENT"
+      },
+      {
+        "from": "CONT-RECEIPT-999",
+        "to": "VERIFY-050",
+        "relation": "VERIFIES"
+      }
+    ],
+
+    "complete": false,
+
+    "missing_links": [
+      "CONT-RECEIPT-050 -> VERIFY-050"
+    ],
+
+    "conflicting_final_states": false,
+    "declared_final_states": [],
+
+    "replay_detected": false,
+    "replayed_receipt_ids": []
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BUNDLE-VERIFY-CONT-MISMATCH-001",
+    "all_receipts_reachable": true,
+
+    "reachable_receipt_ids": [
+      "AUTH-ENV-050",
+      "CONT-RECEIPT-050",
+      "VERIFY-050"
+    ],
+
+    "missing_receipt_ids": [],
+
+    "trace_continuity": "PARTIAL"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-11T08:10:00Z",
+  "closed_at": null,
+
+  "reason": "VERIFY-050 belongs to the correct operation but is linked to CONT-RECEIPT-999 instead of the applicable containment record CONT-RECEIPT-050.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "cross_receipt_checks": {
+      "authority_operation_match": true,
+      "containment_operation_match": true,
+      "verification_operation_match": true,
+      "verification_containment_match": false,
+      "subject_continuity_valid": true,
+      "trace_continuity_valid": false
+    },
+
+    "verification_containment_mismatch": {
+      "verification_receipt_id": "VERIFY-050",
+      "expected_containment_receipt_id": "CONT-RECEIPT-050",
+      "actual_containment_receipt_id": "CONT-RECEIPT-999",
+      "same_operation_id": true,
+      "correct_containment_reference_present": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-025",
+        "invariant": "SAFETY-INV-025",
+        "name": "Verification References Wrong Containment",
+        "severity": "critical",
+        "reason": "VERIFY-050 is linked to CONT-RECEIPT-999 rather than the containment event that actually affected op-production-update-050."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-021": {
+        "result": "PASS",
+        "reason": "The Authority, Containment, and Verification records are declared as part of the same operation event."
+      },
+
+      "SAFETY-INV-022": {
+        "result": "PASS",
+        "reason": "The same subject identity is preserved across the bundle."
+      },
+
+      "SAFETY-INV-023": {
+        "result": "PASS",
+        "reason": "AUTH-ENV-050 is explicitly bound to op-production-update-050."
+      },
+
+      "SAFETY-INV-024": {
+        "result": "PASS",
+        "reason": "CONT-RECEIPT-050 is causally linked to op-production-update-050."
+      },
+
+      "SAFETY-INV-025": {
+        "result": "FAIL",
+        "reason": "VERIFY-050 does not reference or follow the applicable containment receipt CONT-RECEIPT-050."
+      },
+
+      "SAFETY-INV-026": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No Recovery Receipt exists yet."
+      },
+
+      "SAFETY-INV-027": {
+        "result": "FAIL",
+        "reason": "The receipt chain is broken between containment and verification."
+      },
+
+      "SAFETY-INV-028": {
+        "result": "PASS",
+        "reason": "No conflicting final states are declared."
+      },
+
+      "SAFETY-INV-029": {
+        "result": "PASS",
+        "reason": "No receipt replay is detected."
+      },
+
+      "SAFETY-INV-030": {
+        "result": "FAIL",
+        "reason": "All bundle receipts are reachable, but causal trace continuity is incomplete because the verification points to an external containment receipt."
+      }
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject VERIFY-050 as evidence for releasing CONT-RECEIPT-050",
+        "keep op-production-update-050 contained",
+        "verify which containment event VERIFY-050 actually evaluated",
+        "create or relink a Verification Record that explicitly references CONT-RECEIPT-050",
+        "preserve the mismatched reference in trace",
+        "prevent recovery until containment-to-verification continuity is restored"
+      ]
+    }
+  }
+}
