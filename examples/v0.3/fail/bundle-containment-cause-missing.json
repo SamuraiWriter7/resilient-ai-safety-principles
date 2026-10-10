@@ -1,0 +1,185 @@
+{
+  "schema_version": "0.3.0",
+  "bundle_id": "BUNDLE-CONTAINMENT-CAUSE-MISSING-001",
+
+  "operation": {
+    "operation_id": "op-production-update-040",
+    "risk_level": "high",
+    "status": "CONTAINED",
+    "parent_operation_id": null,
+    "successor_operation_id": null
+  },
+
+  "subject": {
+    "subject_id": "op-production-update-040",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "receipts": {
+    "authority": {
+      "receipt_id": "AUTH-ENV-040",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-040",
+      "operation_id": "op-production-update-040",
+      "trace_reference": "TRACE-AUTH-040",
+      "issued_at": "2026-10-11T07:50:00Z"
+    },
+
+    "containment": {
+      "receipt_id": "CONT-RECEIPT-040",
+      "receipt_type": "CONTAINMENT_RECEIPT",
+      "subject_id": "op-production-update-040",
+      "operation_id": "op-production-update-040",
+      "trace_reference": "TRACE-CONT-040",
+      "issued_at": "2026-10-11T08:00:00Z"
+    },
+
+    "verification": null,
+    "recovery": null,
+    "successor_authority": null
+  },
+
+  "chain": {
+    "links": [
+      {
+        "from": "AUTH-ENV-040",
+        "to": "op-production-update-040",
+        "relation": "AUTHORIZES"
+      }
+    ],
+
+    "complete": false,
+
+    "missing_links": [
+      "containment-cause-link"
+    ],
+
+    "conflicting_final_states": false,
+    "declared_final_states": [],
+
+    "replay_detected": false,
+    "replayed_receipt_ids": []
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BUNDLE-CONTAINMENT-CAUSE-MISSING-001",
+    "all_receipts_reachable": true,
+
+    "reachable_receipt_ids": [
+      "AUTH-ENV-040",
+      "CONT-RECEIPT-040"
+    ],
+
+    "missing_receipt_ids": [],
+
+    "trace_continuity": "PARTIAL"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-11T07:50:00Z",
+  "closed_at": null,
+
+  "reason": "A Containment Receipt exists, but the bundle does not identify the operation event, anomaly, authority failure, or state change that caused containment.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "cross_receipt_checks": {
+      "authority_operation_match": true,
+      "containment_operation_match": true,
+      "containment_receipt_present": true,
+      "containment_cause_link_present": false,
+      "trigger_relation_present": false,
+      "subject_continuity_valid": true,
+      "trace_continuity_valid": false
+    },
+
+    "containment_cause_failure": {
+      "containment_receipt_id": "CONT-RECEIPT-040",
+      "expected_operation_id": "op-production-update-040",
+      "cause_type": null,
+      "cause_reference": null,
+      "triggered_containment_relation_present": false,
+      "authority_failure_reference_present": false,
+      "anomaly_reference_present": false,
+      "state_change_reference_present": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-024",
+        "invariant": "SAFETY-INV-024",
+        "name": "Containment Cause Missing",
+        "severity": "critical",
+        "reason": "CONT-RECEIPT-040 is present, but no causal link explains why op-production-update-040 entered containment."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-021": {
+        "result": "PASS",
+        "reason": "The Authority Envelope and Containment Receipt belong to the same declared safety event."
+      },
+
+      "SAFETY-INV-022": {
+        "result": "PASS",
+        "reason": "The operation and containment receipt preserve the same subject identity."
+      },
+
+      "SAFETY-INV-023": {
+        "result": "PASS",
+        "reason": "AUTH-ENV-040 is explicitly bound to op-production-update-040."
+      },
+
+      "SAFETY-INV-024": {
+        "result": "FAIL",
+        "reason": "The bundle contains no causal link from the operation, anomaly, authority condition, or state change to CONT-RECEIPT-040."
+      },
+
+      "SAFETY-INV-025": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No Verification Record exists yet."
+      },
+
+      "SAFETY-INV-026": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No Recovery Receipt exists yet."
+      },
+
+      "SAFETY-INV-027": {
+        "result": "FAIL",
+        "reason": "The safety chain is incomplete because the transition into containment has no declared cause."
+      },
+
+      "SAFETY-INV-028": {
+        "result": "PASS",
+        "reason": "No conflicting final states are declared."
+      },
+
+      "SAFETY-INV-029": {
+        "result": "PASS",
+        "reason": "No receipt replay is detected."
+      },
+
+      "SAFETY-INV-030": {
+        "result": "FAIL",
+        "reason": "Receipt reachability exists, but causal trace continuity is only PARTIAL because the containment trigger is missing."
+      }
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "keep the operation contained",
+        "identify the anomaly, authority condition, state change, or explicit manual decision that caused containment",
+        "add a causal link to CONT-RECEIPT-040",
+        "preserve the trigger evidence in trace",
+        "do not treat the containment history as complete until the cause is reconstructable",
+        "prevent later verification or recovery from relying on an unexplained containment transition"
+      ]
+    }
+  }
+}
