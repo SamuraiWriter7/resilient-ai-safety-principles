@@ -50,15 +50,66 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Check required files
+      - name: Check v0.1 required files
         run: |
           test -f schemas/safety-assessment.schema.json
-          test -f scripts/validate_examples.py
           test -d examples/pass
           test -d examples/fail
 
-      - name: Compile validator
-        run: python -m py_compile scripts/validate_examples.py
+      - name: Check v0.2 schemas
+        run: |
+          test -f schemas/authority-envelope.schema.json
+          test -f schemas/containment-receipt.schema.json
+          test -f schemas/verification-record.schema.json
+          test -f schemas/recovery-receipt.schema.json
 
-      - name: Validate examples
+      - name: Check v0.2 example directories
+        run: |
+          test -d examples/v0.2/pass
+          test -d examples/v0.2/fail
+
+      - name: Check validator
+        run: |
+          test -f scripts/validate_examples.py
+          python -m py_compile scripts/validate_examples.py
+
+      - name: Validate JSON syntax
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          roots = [
+              Path("schemas"),
+              Path("examples/pass"),
+              Path("examples/fail"),
+              Path("examples/v0.2/pass"),
+              Path("examples/v0.2/fail"),
+          ]
+
+          files = []
+
+          for root in roots:
+              if root.exists():
+                  files.extend(sorted(root.rglob("*.json")))
+
+          if not files:
+              raise SystemExit("No JSON files found.")
+
+          for path in files:
+              try:
+                  with path.open("r", encoding="utf-8") as handle:
+                      json.load(handle)
+              except Exception as exc:
+                  raise SystemExit(
+                      f"Invalid JSON: {path}: {exc}"
+                  ) from exc
+
+              print(f"[json-ok] {path}")
+
+          print()
+          print(f"JSON files checked: {len(files)}")
+          PY
+
+      - name: Validate v0.1 and v0.2 examples
         run: python scripts/validate_examples.py
