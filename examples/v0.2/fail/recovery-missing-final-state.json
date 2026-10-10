@@ -1,0 +1,125 @@
+{
+  "schema_version": "0.2.0",
+  "recovery_receipt_id": "RECOVERY-MISSING-FINAL-STATE-001",
+
+  "subject": {
+    "subject_id": "op-production-update-008",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "source_state": {
+    "state": "HELD",
+    "source_reference": "TRACE-CONT-008",
+    "containment_receipt_reference": "CONT-RECEIPT-008",
+    "failure_reference": null
+  },
+
+  "recovery_action": {
+    "action_type": "RECONFIGURE",
+    "performed_by": "recovery-service-001",
+    "performed_at": "2026-10-10T19:55:00Z",
+    "description": "The operation was reconfigured after containment and prepared for a new bounded authority decision.",
+    "repair_reference": "REPAIR-PLAN-008"
+  },
+
+  "verification": {
+    "verification_reference": "VERIFY-008",
+    "verification_result": "VERIFIED_SAFE",
+    "independent": true
+  },
+
+  "authority_outcome": {
+    "previous_authority_reference": "AUTH-ENV-008",
+    "previous_authority_restored": false,
+    "new_authority_required": true,
+    "new_authority_reference": "AUTH-ENV-009",
+    "authority_reduced": true
+  },
+
+  "successor": {
+    "successor_id": "op-production-update-008-r1",
+    "successor_type": "OPERATION",
+    "inherits_blockers": false,
+    "inherits_authority": false
+  },
+
+  "unresolved_blockers": [],
+
+  "recovered_at": "2026-10-10T19:56:00Z",
+
+  "reason": "Recovery processing completed with independent verification and fresh authority, but no explicit final recovery state was recorded.",
+
+  "trace_reference": "TRACE-RECOVERY-MISSING-FINAL-STATE-001",
+
+  "metadata": {
+    "risk_level": "high",
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "final_state_check": {
+      "final_state_present": false,
+      "recovery_action_completed": true,
+      "verification_completed": true,
+      "new_authority_present": true,
+      "downstream_state_determinable": false
+    },
+
+    "known_possible_outcomes": [
+      "REAUTHORIZED",
+      "RESTRICTED",
+      "ISOLATED",
+      "TRANSFERRED",
+      "TERMINATED",
+      "COMPLETED"
+    ],
+
+    "violations": [
+      {
+        "violation_id": "FAIL-020",
+        "invariant": "SAFETY-INV-020",
+        "name": "Recovery Final State Missing",
+        "severity": "high",
+        "reason": "The Recovery Receipt does not declare an explicit resulting state, so downstream systems cannot determine the authoritative outcome of recovery."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-018": {
+        "result": "PASS",
+        "reason": "The Recovery Receipt identifies the HELD source state and originating Containment Receipt."
+      },
+
+      "SAFETY-INV-019": {
+        "result": "PASS",
+        "reason": "The previous authority was not restored and a new reduced Authority Envelope was issued."
+      },
+
+      "SAFETY-INV-020": {
+        "result": "FAIL",
+        "reason": "No explicit final_state is present in the Recovery Receipt."
+      }
+    },
+
+    "risk": {
+      "recovery_outcome_ambiguous": true,
+      "execution_may_resume_without_clear_state": true,
+      "containment_may_persist_indefinitely": true,
+      "downstream_policy_decision_possible": false,
+      "reason": "Without an explicit final state, different components may interpret the recovery outcome differently."
+    },
+
+    "expected_safe_behavior": {
+      "required_transition": "REJECT_INCOMPLETE_RECOVERY",
+      "required_actions": [
+        "reject the Recovery Receipt as incomplete",
+        "do not infer the final state from the presence of a new Authority Envelope",
+        "keep execution blocked until the recovery outcome is explicit",
+        "declare exactly one valid final recovery state",
+        "link that final state to the verification and authority outcome",
+        "record the corrected Recovery Receipt in trace",
+        "allow downstream systems to act only after the final state is explicit"
+      ]
+    }
+  }
+}
