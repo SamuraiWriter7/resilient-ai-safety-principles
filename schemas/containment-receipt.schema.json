@@ -1,0 +1,522 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/resilient-ai-safety-principles/schemas/containment-receipt.schema.json",
+  "title": "Containment Receipt",
+  "description": "Machine-readable record of a safety-relevant containment transition for Resilient AI Safety Principles v0.2.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "schema_version",
+    "containment_receipt_id",
+    "subject",
+    "trigger",
+    "prior_state",
+    "containment_state",
+    "restrictions",
+    "evidence_preservation",
+    "controller",
+    "contained_at",
+    "trace_reference"
+  ],
+
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.2.0"
+    },
+
+    "containment_receipt_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+
+    "subject": {
+      "$ref": "#/$defs/subject"
+    },
+
+    "trigger": {
+      "$ref": "#/$defs/trigger"
+    },
+
+    "prior_state": {
+      "type": "string",
+      "minLength": 1
+    },
+
+    "containment_state": {
+      "type": "string",
+      "enum": [
+        "HELD",
+        "QUARANTINED",
+        "RESTRICTED",
+        "ISOLATED"
+      ]
+    },
+
+    "restrictions": {
+      "$ref": "#/$defs/restrictions"
+    },
+
+    "authority_effect": {
+      "$ref": "#/$defs/authorityEffect"
+    },
+
+    "network_effect": {
+      "$ref": "#/$defs/networkEffect"
+    },
+
+    "evidence_preservation": {
+      "$ref": "#/$defs/evidencePreservation"
+    },
+
+    "controller": {
+      "$ref": "#/$defs/controller"
+    },
+
+    "verification_required": {
+      "type": "boolean"
+    },
+
+    "verification_reference": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+
+    "recovery_required": {
+      "type": "boolean"
+    },
+
+    "recovery_reference": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+
+    "contained_at": {
+      "$ref": "#/$defs/dateTime"
+    },
+
+    "expires_at": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/dateTime"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+
+    "trace_reference": {
+      "type": "string",
+      "minLength": 1
+    },
+
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+
+  "$defs": {
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_id",
+        "subject_type"
+      ],
+      "properties": {
+        "subject_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "subject_type": {
+          "type": "string",
+          "enum": [
+            "OPERATION",
+            "AI_AGENT",
+            "AI_MODEL",
+            "SERVICE",
+            "NODE",
+            "PROCESS",
+            "AUTHORITY_DOMAIN",
+            "NETWORK_ROUTE",
+            "OTHER"
+          ]
+        },
+
+        "domain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trigger_id",
+        "trigger_type",
+        "severity",
+        "detected_by"
+      ],
+      "properties": {
+        "trigger_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "trigger_type": {
+          "type": "string",
+          "enum": [
+            "ANOMALY",
+            "AUTHORITY_INVALID",
+            "AUTHORITY_EXPIRED",
+            "AUTHORITY_REVOKED",
+            "AUTHORITY_UNKNOWN",
+            "EVIDENCE_STALE",
+            "RESOURCE_LIMIT",
+            "TARGET_STATE_CHANGED",
+            "POLICY_VIOLATION",
+            "VERIFICATION_REQUIRED",
+            "MANUAL_HOLD",
+            "EMERGENCY_CONTAINMENT",
+            "OTHER"
+          ]
+        },
+
+        "severity": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+
+        "detected_by": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "detected_at": {
+          "$ref": "#/$defs/dateTime"
+        },
+
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "evidence_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "restrictions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "new_authority_blocked",
+        "external_execution_blocked",
+        "tool_use_restricted",
+        "state_mutation_restricted"
+      ],
+      "properties": {
+        "new_authority_blocked": {
+          "type": "boolean"
+        },
+
+        "external_execution_blocked": {
+          "type": "boolean"
+        },
+
+        "tool_use_restricted": {
+          "type": "boolean"
+        },
+
+        "state_mutation_restricted": {
+          "type": "boolean"
+        },
+
+        "communication_restricted": {
+          "type": "boolean"
+        },
+
+        "resource_restricted": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "authorityEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "authority_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "authority_frozen": {
+          "type": "boolean"
+        },
+
+        "authority_revoked": {
+          "type": "boolean"
+        },
+
+        "authority_reduced": {
+          "type": "boolean"
+        },
+
+        "new_authority_blocked": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "networkEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "connectivity_state": {
+          "type": "string",
+          "enum": [
+            "UNCHANGED",
+            "RESTRICTED",
+            "ISOLATED"
+          ]
+        },
+
+        "outbound_blocked": {
+          "type": "boolean"
+        },
+
+        "inbound_blocked": {
+          "type": "boolean"
+        },
+
+        "cross_domain_blocked": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "evidencePreservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state_preserved",
+        "trace_preserved",
+        "trigger_evidence_preserved"
+      ],
+      "properties": {
+        "state_preserved": {
+          "type": "boolean"
+        },
+
+        "trace_preserved": {
+          "type": "boolean"
+        },
+
+        "trigger_evidence_preserved": {
+          "type": "boolean"
+        },
+
+        "snapshot_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "evidence_bundle_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "tamper_evident": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "controller": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "controller_id",
+        "controller_type",
+        "independent_from_subject"
+      ],
+      "properties": {
+        "controller_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "controller_type": {
+          "type": "string",
+          "enum": [
+            "SAFETY_SERVICE",
+            "POLICY_ENGINE",
+            "AUTHORITY_SERVICE",
+            "HUMAN",
+            "AI_AGENT",
+            "NETWORK_CONTROL",
+            "OTHER"
+          ]
+        },
+
+        "independent_from_subject": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "containment_state": {
+            "const": "HELD"
+          }
+        },
+        "required": [
+          "containment_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "restrictions": {
+            "properties": {
+              "external_execution_blocked": {
+                "const": true
+              }
+            },
+            "required": [
+              "external_execution_blocked"
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "containment_state": {
+            "const": "QUARANTINED"
+          }
+        },
+        "required": [
+          "containment_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "restrictions": {
+            "properties": {
+              "external_execution_blocked": {
+                "const": true
+              },
+              "state_mutation_restricted": {
+                "const": true
+              }
+            },
+            "required": [
+              "external_execution_blocked",
+              "state_mutation_restricted"
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "containment_state": {
+            "const": "ISOLATED"
+          }
+        },
+        "required": [
+          "containment_state"
+        ]
+      },
+      "then": {
+        "required": [
+          "network_effect"
+        ],
+        "properties": {
+          "network_effect": {
+            "properties": {
+              "connectivity_state": {
+                "const": "ISOLATED"
+              }
+            },
+            "required": [
+              "connectivity_state"
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "verification_required": {
+            "const": false
+          }
+        },
+        "required": [
+          "verification_required"
+        ]
+      },
+      "then": {
+        "properties": {
+          "verification_reference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
