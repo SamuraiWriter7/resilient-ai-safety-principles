@@ -1,0 +1,249 @@
+{
+  "schema_version": "0.3.0",
+  "bundle_id": "BUNDLE-TRACE-DISCONTINUITY-001",
+
+  "operation": {
+    "operation_id": "op-production-update-100",
+    "risk_level": "high",
+    "status": "RECOVERED",
+    "parent_operation_id": null,
+    "successor_operation_id": "op-production-update-100-r1"
+  },
+
+  "subject": {
+    "subject_id": "op-production-update-100",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "receipts": {
+    "authority": {
+      "receipt_id": "AUTH-ENV-100",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-100",
+      "operation_id": "op-production-update-100",
+      "trace_reference": "TRACE-AUTH-100",
+      "issued_at": "2026-10-11T10:40:00Z"
+    },
+
+    "containment": {
+      "receipt_id": "CONT-RECEIPT-100",
+      "receipt_type": "CONTAINMENT_RECEIPT",
+      "subject_id": "op-production-update-100",
+      "operation_id": "op-production-update-100",
+      "trace_reference": "TRACE-CONT-100",
+      "issued_at": "2026-10-11T10:50:00Z"
+    },
+
+    "verification": {
+      "receipt_id": "VERIFY-100",
+      "receipt_type": "VERIFICATION_RECORD",
+      "subject_id": "op-production-update-100",
+      "operation_id": "op-production-update-100",
+      "trace_reference": "TRACE-VERIFY-100",
+      "issued_at": "2026-10-11T11:00:00Z"
+    },
+
+    "recovery": {
+      "receipt_id": "RECOVERY-100",
+      "receipt_type": "RECOVERY_RECEIPT",
+      "subject_id": "op-production-update-100",
+      "operation_id": "op-production-update-100",
+      "trace_reference": "TRACE-RECOVERY-100",
+      "issued_at": "2026-10-11T11:10:00Z"
+    },
+
+    "successor_authority": {
+      "receipt_id": "AUTH-ENV-101",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-100-r1",
+      "operation_id": "op-production-update-100-r1",
+      "trace_reference": "TRACE-AUTH-101",
+      "issued_at": "2026-10-11T11:11:00Z"
+    }
+  },
+
+  "chain": {
+    "links": [
+      {
+        "from": "AUTH-ENV-100",
+        "to": "op-production-update-100",
+        "relation": "AUTHORIZES"
+      },
+      {
+        "from": "op-production-update-100",
+        "to": "CONT-RECEIPT-100",
+        "relation": "TRIGGERED_CONTAINMENT"
+      },
+      {
+        "from": "CONT-RECEIPT-100",
+        "to": "VERIFY-100",
+        "relation": "VERIFIES"
+      },
+      {
+        "from": "VERIFY-100",
+        "to": "RECOVERY-100",
+        "relation": "JUSTIFIES_RECOVERY"
+      },
+      {
+        "from": "RECOVERY-100",
+        "to": "AUTH-ENV-101",
+        "relation": "REAUTHORIZES"
+      },
+      {
+        "from": "op-production-update-100",
+        "to": "op-production-update-100-r1",
+        "relation": "SUCCEEDS"
+      }
+    ],
+
+    "complete": true,
+    "missing_links": [],
+
+    "conflicting_final_states": false,
+
+    "declared_final_states": [
+      "REAUTHORIZED"
+    ],
+
+    "replay_detected": false,
+    "replayed_receipt_ids": []
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BUNDLE-TRACE-DISCONTINUITY-001",
+
+    "all_receipts_reachable": false,
+
+    "reachable_receipt_ids": [
+      "AUTH-ENV-100",
+      "CONT-RECEIPT-100",
+      "RECOVERY-100",
+      "AUTH-ENV-101"
+    ],
+
+    "missing_receipt_ids": [
+      "VERIFY-100"
+    ],
+
+    "trace_continuity": "BROKEN"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-11T10:40:00Z",
+  "closed_at": null,
+
+  "reason": "The receipt chain is structurally complete, but VERIFY-100 is not reachable through the associated trace graph.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "cross_receipt_checks": {
+      "authority_operation_match": true,
+      "containment_operation_match": true,
+      "verification_containment_match": true,
+      "recovery_verification_match": true,
+      "subject_continuity_valid": true,
+      "receipt_identity_consistent": true,
+      "chain_complete": true,
+      "final_state_consistency_valid": true,
+      "receipt_replay_detected": false,
+      "trace_continuity_valid": false
+    },
+
+    "trace_discontinuity": {
+      "bundle_trace_id": "TRACE-BUNDLE-TRACE-DISCONTINUITY-001",
+      "missing_receipt_id": "VERIFY-100",
+      "missing_receipt_type": "VERIFICATION_RECORD",
+      "receipt_exists_in_bundle": true,
+      "receipt_reachable_from_trace": false,
+      "causal_chain_declared_complete": true,
+      "trace_graph_complete": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-030",
+        "invariant": "SAFETY-INV-030",
+        "name": "Bundle Trace Discontinuity",
+        "severity": "critical",
+        "reason": "VERIFY-100 exists in the bundle and participates in the declared receipt chain, but cannot be reached through the associated trace graph."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-021": {
+        "result": "PASS",
+        "reason": "All receipts belong to the same declared safety event or explicit successor."
+      },
+
+      "SAFETY-INV-022": {
+        "result": "PASS",
+        "reason": "Subject continuity is preserved throughout the receipt chain."
+      },
+
+      "SAFETY-INV-023": {
+        "result": "PASS",
+        "reason": "AUTH-ENV-100 is explicitly bound to op-production-update-100."
+      },
+
+      "SAFETY-INV-024": {
+        "result": "PASS",
+        "reason": "CONT-RECEIPT-100 is causally linked to the operation."
+      },
+
+      "SAFETY-INV-025": {
+        "result": "PASS",
+        "reason": "VERIFY-100 is explicitly linked to CONT-RECEIPT-100."
+      },
+
+      "SAFETY-INV-026": {
+        "result": "PASS",
+        "reason": "RECOVERY-100 is explicitly justified by VERIFY-100."
+      },
+
+      "SAFETY-INV-027": {
+        "result": "PASS",
+        "reason": "The declared receipt chain contains no missing causal transition."
+      },
+
+      "SAFETY-INV-028": {
+        "result": "PASS",
+        "reason": "Only one final state, REAUTHORIZED, is declared."
+      },
+
+      "SAFETY-INV-029": {
+        "result": "PASS",
+        "reason": "No receipt replay is detected."
+      },
+
+      "SAFETY-INV-030": {
+        "result": "FAIL",
+        "reason": "VERIFY-100 is not reachable through the bundle trace, so the safety history cannot be fully reconstructed from trace."
+      }
+    },
+
+    "risk": {
+      "audit_reconstruction_complete": false,
+      "verification_provenance_available": false,
+      "chain_and_trace_disagree": true,
+      "reason": "The bundle claims that verification occurred, but the trace graph cannot independently establish that Verification Record as part of the safety history."
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject the bundle as fully traceable",
+        "keep the affected recovery chain from being treated as CLOSED",
+        "locate TRACE-VERIFY-100 or reconstruct its valid trace linkage from preserved evidence",
+        "link VERIFY-100 into the bundle trace graph",
+        "verify that the recovered trace belongs to the same operation and containment event",
+        "preserve the trace discontinuity incident",
+        "set all_receipts_reachable to true only after every safety-critical receipt is reachable",
+        "mark trace_continuity COMPLETE only after the gap is resolved"
+      ]
+    }
+  }
+}
