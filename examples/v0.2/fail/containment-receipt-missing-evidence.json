@@ -1,0 +1,128 @@
+{
+  "schema_version": "0.2.0",
+  "containment_receipt_id": "CONT-RECEIPT-MISSING-EVIDENCE-001",
+
+  "subject": {
+    "subject_id": "op-production-update-002",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "trigger": {
+    "trigger_id": "ANOMALY-002",
+    "trigger_type": "TARGET_STATE_CHANGED",
+    "severity": "high",
+    "detected_by": "agent-auditor-001",
+    "detected_at": "2026-10-10T17:14:00Z",
+    "description": "The target state changed after authorization and the operation was placed into containment.",
+    "evidence_reference": "EVIDENCE-TARGET-STATE-002"
+  },
+
+  "prior_state": "AUTHORIZED",
+
+  "containment_state": "HELD",
+
+  "restrictions": {
+    "new_authority_blocked": true,
+    "external_execution_blocked": true,
+    "tool_use_restricted": true,
+    "state_mutation_restricted": true,
+    "communication_restricted": false,
+    "resource_restricted": true
+  },
+
+  "authority_effect": {
+    "authority_reference": "AUTH-ENV-002",
+    "authority_frozen": true,
+    "authority_revoked": false,
+    "authority_reduced": false,
+    "new_authority_blocked": true
+  },
+
+  "network_effect": {
+    "connectivity_state": "RESTRICTED",
+    "outbound_blocked": true,
+    "inbound_blocked": false,
+    "cross_domain_blocked": true
+  },
+
+  "evidence_preservation": {
+    "state_preserved": false,
+    "trace_preserved": false,
+    "trigger_evidence_preserved": false,
+    "snapshot_reference": null,
+    "evidence_bundle_reference": null,
+    "tamper_evident": false
+  },
+
+  "controller": {
+    "controller_id": "safety-service-001",
+    "controller_type": "SAFETY_SERVICE",
+    "independent_from_subject": true
+  },
+
+  "verification_required": true,
+  "verification_reference": null,
+
+  "recovery_required": true,
+  "recovery_reference": null,
+
+  "contained_at": "2026-10-10T17:14:02Z",
+
+  "expires_at": null,
+
+  "reason": "The operation was held after a target-state anomaly, but the implementation failed to preserve the state and evidence required for verification and recovery.",
+
+  "trace_reference": "TRACE-CONT-MISSING-EVIDENCE-001",
+
+  "metadata": {
+    "risk_level": "high",
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "violations": [
+      {
+        "violation_id": "FAIL-015",
+        "invariant": "SAFETY-INV-015",
+        "name": "Containment Evidence Not Preserved",
+        "severity": "critical",
+        "reason": "The operation entered HELD, but system state, trace evidence, and trigger evidence were not preserved."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-014": {
+        "result": "PASS",
+        "reason": "The transition from AUTHORIZED to HELD is explicitly represented by a Containment Receipt."
+      },
+
+      "SAFETY-INV-015": {
+        "result": "FAIL",
+        "reason": "Containment did not preserve the state, trace, or trigger evidence required for independent verification and recovery."
+      }
+    },
+
+    "verification_impact": {
+      "independent_verification_possible": false,
+      "reason": "The verifier cannot reliably reconstruct the pre-containment state or confirm the anomaly because critical evidence was discarded."
+    },
+
+    "recovery_impact": {
+      "safe_recovery_possible": false,
+      "reason": "Recovery cannot determine what state should be restored or whether the original authorization assumptions remain valid."
+    },
+
+    "expected_safe_behavior": {
+      "required_transition": "RETAIN_HELD_AND_PRESERVE_EVIDENCE",
+      "required_actions": [
+        "keep the operation in HELD",
+        "preserve the current system state before repair",
+        "preserve the complete safety trace",
+        "preserve the evidence that triggered containment",
+        "create a state snapshot or equivalent recovery reference",
+        "prevent recovery or re-authorization until sufficient evidence is available",
+        "record any irreversible evidence loss in the safety trace"
+      ]
+    }
+  }
+}
