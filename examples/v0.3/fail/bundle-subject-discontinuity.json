@@ -1,0 +1,234 @@
+{
+  "schema_version": "0.3.0",
+  "bundle_id": "BUNDLE-SUBJECT-DISCONTINUITY-001",
+
+  "operation": {
+    "operation_id": "op-production-update-020",
+    "risk_level": "high",
+    "status": "REAUTHORIZED",
+    "parent_operation_id": null,
+    "successor_operation_id": "op-production-update-020-r1"
+  },
+
+  "subject": {
+    "subject_id": "op-production-update-020",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "receipts": {
+    "authority": {
+      "receipt_id": "AUTH-ENV-020",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-020",
+      "operation_id": "op-production-update-020",
+      "trace_reference": "TRACE-AUTH-020",
+      "issued_at": "2026-10-11T06:30:00Z"
+    },
+
+    "containment": {
+      "receipt_id": "CONT-RECEIPT-020",
+      "receipt_type": "CONTAINMENT_RECEIPT",
+      "subject_id": "op-production-update-020",
+      "operation_id": "op-production-update-020",
+      "trace_reference": "TRACE-CONT-020",
+      "issued_at": "2026-10-11T06:40:00Z"
+    },
+
+    "verification": {
+      "receipt_id": "VERIFY-020",
+      "receipt_type": "VERIFICATION_RECORD",
+      "subject_id": "agent-executor-shadow-020",
+      "operation_id": "op-production-update-020",
+      "trace_reference": "TRACE-VERIFY-020",
+      "issued_at": "2026-10-11T06:50:00Z"
+    },
+
+    "recovery": {
+      "receipt_id": "RECOVERY-020",
+      "receipt_type": "RECOVERY_RECEIPT",
+      "subject_id": "op-production-update-020",
+      "operation_id": "op-production-update-020",
+      "trace_reference": "TRACE-RECOVERY-020",
+      "issued_at": "2026-10-11T07:00:00Z"
+    },
+
+    "successor_authority": {
+      "receipt_id": "AUTH-ENV-021",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-020-r1",
+      "operation_id": "op-production-update-020-r1",
+      "trace_reference": "TRACE-AUTH-021",
+      "issued_at": "2026-10-11T07:01:00Z"
+    }
+  },
+
+  "chain": {
+    "links": [
+      {
+        "from": "AUTH-ENV-020",
+        "to": "op-production-update-020",
+        "relation": "AUTHORIZES"
+      },
+      {
+        "from": "op-production-update-020",
+        "to": "CONT-RECEIPT-020",
+        "relation": "TRIGGERED_CONTAINMENT"
+      },
+      {
+        "from": "CONT-RECEIPT-020",
+        "to": "VERIFY-020",
+        "relation": "VERIFIES"
+      },
+      {
+        "from": "VERIFY-020",
+        "to": "RECOVERY-020",
+        "relation": "JUSTIFIES_RECOVERY"
+      },
+      {
+        "from": "RECOVERY-020",
+        "to": "AUTH-ENV-021",
+        "relation": "REAUTHORIZES"
+      },
+      {
+        "from": "op-production-update-020",
+        "to": "op-production-update-020-r1",
+        "relation": "SUCCEEDS"
+      }
+    ],
+
+    "complete": true,
+    "missing_links": [],
+    "conflicting_final_states": false,
+
+    "declared_final_states": [
+      "REAUTHORIZED"
+    ],
+
+    "replay_detected": false,
+    "replayed_receipt_ids": []
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BUNDLE-SUBJECT-DISCONTINUITY-001",
+    "all_receipts_reachable": true,
+
+    "reachable_receipt_ids": [
+      "AUTH-ENV-020",
+      "CONT-RECEIPT-020",
+      "VERIFY-020",
+      "RECOVERY-020",
+      "AUTH-ENV-021"
+    ],
+
+    "missing_receipt_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-11T06:30:00Z",
+  "closed_at": null,
+
+  "reason": "All receipts reference the same operation, but the verification stage silently changes the safety subject to a different entity without an explicit subject-transfer relation.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "cross_receipt_checks": {
+      "authority_operation_match": true,
+      "containment_operation_match": true,
+      "verification_operation_match": true,
+      "recovery_operation_match": true,
+      "subject_continuity_valid": false,
+      "explicit_subject_transfer_present": false,
+      "trace_continuity_valid": true
+    },
+
+    "subject_discontinuity": {
+      "expected_subject_id": "op-production-update-020",
+      "receipt_id": "VERIFY-020",
+      "receipt_type": "VERIFICATION_RECORD",
+      "actual_subject_id": "agent-executor-shadow-020",
+      "operation_id_unchanged": true,
+      "explicit_transfer_or_successor_link_present": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-022",
+        "invariant": "SAFETY-INV-022",
+        "name": "Silent Subject Discontinuity",
+        "severity": "critical",
+        "reason": "VERIFY-020 changes the safety subject from op-production-update-020 to agent-executor-shadow-020 without an explicit successor, transfer, delegation, or subject-transition record."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-021": {
+        "result": "PASS",
+        "reason": "All receipts are associated with the same declared operation and safety event; the failure concerns subject continuity rather than event identity."
+      },
+
+      "SAFETY-INV-022": {
+        "result": "FAIL",
+        "reason": "The verification stage silently changes subject_id without an explicit causal subject-transition relationship."
+      },
+
+      "SAFETY-INV-023": {
+        "result": "PASS",
+        "reason": "AUTH-ENV-020 is explicitly bound to op-production-update-020."
+      },
+
+      "SAFETY-INV-024": {
+        "result": "PASS",
+        "reason": "CONT-RECEIPT-020 is causally linked to op-production-update-020."
+      },
+
+      "SAFETY-INV-025": {
+        "result": "PASS",
+        "reason": "VERIFY-020 is structurally linked to the applicable containment receipt and references the same operation_id."
+      },
+
+      "SAFETY-INV-026": {
+        "result": "PASS",
+        "reason": "RECOVERY-020 explicitly follows VERIFY-020."
+      },
+
+      "SAFETY-INV-027": {
+        "result": "FAIL",
+        "reason": "The receipt sequence is complete syntactically, but the unexplained subject transition creates a causal discontinuity."
+      },
+
+      "SAFETY-INV-028": {
+        "result": "PASS",
+        "reason": "Only one final state, REAUTHORIZED, is declared."
+      },
+
+      "SAFETY-INV-029": {
+        "result": "PASS",
+        "reason": "No receipt replay is detected."
+      },
+
+      "SAFETY-INV-030": {
+        "result": "PASS",
+        "reason": "All receipts are reachable through the bundle trace and trace continuity is COMPLETE."
+      }
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject the unexplained subject change",
+        "keep the original operation contained",
+        "determine whether agent-executor-shadow-020 is a legitimate successor, delegate, or unrelated subject",
+        "record an explicit subject-transfer or successor relationship if the transition is legitimate",
+        "regenerate or relink the Verification Record to the correct subject",
+        "preserve the discontinuity event in trace",
+        "prevent recovery and re-authorization until subject continuity is restored"
+      ]
+    }
+  }
+}
