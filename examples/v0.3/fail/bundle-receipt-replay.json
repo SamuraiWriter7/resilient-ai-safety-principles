@@ -1,0 +1,263 @@
+{
+  "schema_version": "0.3.0",
+  "bundle_id": "BUNDLE-RECEIPT-REPLAY-001",
+
+  "operation": {
+    "operation_id": "op-production-update-091",
+    "risk_level": "high",
+    "status": "RECOVERED",
+    "parent_operation_id": null,
+    "successor_operation_id": "op-production-update-091-r1"
+  },
+
+  "subject": {
+    "subject_id": "op-production-update-091",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "receipts": {
+    "authority": {
+      "receipt_id": "AUTH-ENV-091",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-091",
+      "operation_id": "op-production-update-091",
+      "trace_reference": "TRACE-AUTH-091",
+      "issued_at": "2026-10-11T10:10:00Z"
+    },
+
+    "containment": {
+      "receipt_id": "CONT-RECEIPT-091",
+      "receipt_type": "CONTAINMENT_RECEIPT",
+      "subject_id": "op-production-update-091",
+      "operation_id": "op-production-update-091",
+      "trace_reference": "TRACE-CONT-091",
+      "issued_at": "2026-10-11T10:20:00Z"
+    },
+
+    "verification": {
+      "receipt_id": "VERIFY-090",
+      "receipt_type": "VERIFICATION_RECORD",
+      "subject_id": "op-production-update-091",
+      "operation_id": "op-production-update-091",
+      "trace_reference": "TRACE-VERIFY-090",
+      "issued_at": "2026-10-11T09:45:00Z"
+    },
+
+    "recovery": {
+      "receipt_id": "RECOVERY-091",
+      "receipt_type": "RECOVERY_RECEIPT",
+      "subject_id": "op-production-update-091",
+      "operation_id": "op-production-update-091",
+      "trace_reference": "TRACE-RECOVERY-091",
+      "issued_at": "2026-10-11T10:30:00Z"
+    },
+
+    "successor_authority": {
+      "receipt_id": "AUTH-ENV-092",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-091-r1",
+      "operation_id": "op-production-update-091-r1",
+      "trace_reference": "TRACE-AUTH-092",
+      "issued_at": "2026-10-11T10:31:00Z"
+    }
+  },
+
+  "chain": {
+    "links": [
+      {
+        "from": "AUTH-ENV-091",
+        "to": "op-production-update-091",
+        "relation": "AUTHORIZES"
+      },
+      {
+        "from": "op-production-update-091",
+        "to": "CONT-RECEIPT-091",
+        "relation": "TRIGGERED_CONTAINMENT"
+      },
+      {
+        "from": "CONT-RECEIPT-091",
+        "to": "VERIFY-090",
+        "relation": "VERIFIES"
+      },
+      {
+        "from": "VERIFY-090",
+        "to": "RECOVERY-091",
+        "relation": "JUSTIFIES_RECOVERY"
+      },
+      {
+        "from": "RECOVERY-091",
+        "to": "AUTH-ENV-092",
+        "relation": "REAUTHORIZES"
+      },
+      {
+        "from": "op-production-update-091",
+        "to": "op-production-update-091-r1",
+        "relation": "SUCCEEDS"
+      }
+    ],
+
+    "complete": true,
+    "missing_links": [],
+
+    "conflicting_final_states": false,
+
+    "declared_final_states": [
+      "REAUTHORIZED"
+    ],
+
+    "replay_detected": true,
+
+    "replayed_receipt_ids": [
+      "VERIFY-090"
+    ]
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BUNDLE-RECEIPT-REPLAY-001",
+    "all_receipts_reachable": true,
+
+    "reachable_receipt_ids": [
+      "AUTH-ENV-091",
+      "CONT-RECEIPT-091",
+      "VERIFY-090",
+      "RECOVERY-091",
+      "AUTH-ENV-092"
+    ],
+
+    "missing_receipt_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-11T10:10:00Z",
+  "closed_at": null,
+
+  "reason": "VERIFY-090 was previously consumed by another recovery chain and was replayed as verification evidence for op-production-update-091.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "cross_receipt_checks": {
+      "authority_operation_match": true,
+      "containment_operation_match": true,
+      "verification_containment_match": true,
+      "recovery_verification_match": true,
+      "subject_continuity_valid": true,
+      "receipt_identity_consistent": true,
+      "chain_complete": true,
+      "final_state_consistency_valid": true,
+      "receipt_replay_detected": true,
+      "trace_continuity_valid": true
+    },
+
+    "replay_details": {
+      "replayed_receipt_id": "VERIFY-090",
+      "replayed_receipt_type": "VERIFICATION_RECORD",
+
+      "original_use": {
+        "bundle_id": "BUNDLE-090",
+        "operation_id": "op-production-update-090",
+        "recovery_receipt_id": "RECOVERY-090",
+        "consumed_at": "2026-10-11T09:50:00Z"
+      },
+
+      "replayed_use": {
+        "bundle_id": "BUNDLE-RECEIPT-REPLAY-001",
+        "operation_id": "op-production-update-091",
+        "recovery_receipt_id": "RECOVERY-091",
+        "attempted_at": "2026-10-11T10:30:00Z"
+      },
+
+      "same_receipt_identity_reused": true,
+      "explicit_reusable_scope_present": false,
+      "new_independent_verification_performed": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-029",
+        "invariant": "SAFETY-INV-029",
+        "name": "Safety Receipt Replay",
+        "severity": "critical",
+        "reason": "VERIFY-090 was reused as recovery evidence for a different operation after already being consumed by another recovery chain."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-021": {
+        "result": "PASS",
+        "reason": "The receipts declared inside this bundle are internally assigned to the same safety event."
+      },
+
+      "SAFETY-INV-022": {
+        "result": "PASS",
+        "reason": "Subject continuity within the current bundle is preserved."
+      },
+
+      "SAFETY-INV-023": {
+        "result": "PASS",
+        "reason": "AUTH-ENV-091 is explicitly bound to op-production-update-091."
+      },
+
+      "SAFETY-INV-024": {
+        "result": "PASS",
+        "reason": "CONT-RECEIPT-091 is causally linked to the operation."
+      },
+
+      "SAFETY-INV-025": {
+        "result": "PASS",
+        "reason": "The bundle structurally links VERIFY-090 to CONT-RECEIPT-091."
+      },
+
+      "SAFETY-INV-026": {
+        "result": "PASS",
+        "reason": "RECOVERY-091 explicitly references VERIFY-090."
+      },
+
+      "SAFETY-INV-027": {
+        "result": "PASS",
+        "reason": "No transition is missing within the declared current-chain structure."
+      },
+
+      "SAFETY-INV-028": {
+        "result": "PASS",
+        "reason": "Only REAUTHORIZED is declared as the final state."
+      },
+
+      "SAFETY-INV-029": {
+        "result": "FAIL",
+        "reason": "VERIFY-090 was already consumed by a different operation and was reused without an explicit reusable scope or fresh verification."
+      },
+
+      "SAFETY-INV-030": {
+        "result": "PASS",
+        "reason": "All current bundle receipts are reachable and trace continuity is COMPLETE."
+      }
+    },
+
+    "risk": {
+      "stale_safety_decision_reused": true,
+      "cross_operation_authorization_leak_possible": true,
+      "verification_context_mismatch_possible": true,
+      "reason": "Reusing a previously consumed safety receipt can cause a decision made for one operation, state, or time window to be treated as valid for another."
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject VERIFY-090 as reusable recovery evidence for op-production-update-091",
+        "keep op-production-update-091 contained",
+        "mark VERIFY-090 as already consumed by its original recovery chain",
+        "perform a fresh independent verification for op-production-update-091",
+        "issue a new Verification Record with a new stable receipt identity",
+        "bind the new verification only to the current containment and recovery chain",
+        "preserve the replay attempt in trace",
+        "prevent successor authority from becoming effective until fresh verification exists"
+      ]
+    }
+  }
+}
