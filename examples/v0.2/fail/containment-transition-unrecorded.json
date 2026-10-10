@@ -1,0 +1,152 @@
+{
+  "schema_version": "0.2.0",
+  "containment_receipt_id": "CONT-RECEIPT-RECONSTRUCTED-001",
+
+  "subject": {
+    "subject_id": "op-production-update-003",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "trigger": {
+    "trigger_id": "ANOMALY-003",
+    "trigger_type": "AUTHORITY_UNKNOWN",
+    "severity": "high",
+    "detected_by": "safety-gate-001",
+    "detected_at": "2026-10-10T17:15:00Z",
+    "description": "The operation was placed into HELD because its effective authority could not be confirmed.",
+    "evidence_reference": "EVIDENCE-AUTHORITY-UNKNOWN-003"
+  },
+
+  "prior_state": "AUTHORIZED",
+
+  "containment_state": "HELD",
+
+  "restrictions": {
+    "new_authority_blocked": true,
+    "external_execution_blocked": true,
+    "tool_use_restricted": true,
+    "state_mutation_restricted": true,
+    "communication_restricted": false,
+    "resource_restricted": true
+  },
+
+  "authority_effect": {
+    "authority_reference": "AUTH-ENV-003",
+    "authority_frozen": true,
+    "authority_revoked": false,
+    "authority_reduced": false,
+    "new_authority_blocked": true
+  },
+
+  "network_effect": {
+    "connectivity_state": "RESTRICTED",
+    "outbound_blocked": true,
+    "inbound_blocked": false,
+    "cross_domain_blocked": true
+  },
+
+  "evidence_preservation": {
+    "state_preserved": true,
+    "trace_preserved": true,
+    "trigger_evidence_preserved": true,
+    "snapshot_reference": "SNAPSHOT-003",
+    "evidence_bundle_reference": "EVIDENCE-BUNDLE-003",
+    "tamper_evident": true
+  },
+
+  "controller": {
+    "controller_id": "safety-service-001",
+    "controller_type": "SAFETY_SERVICE",
+    "independent_from_subject": true
+  },
+
+  "verification_required": true,
+  "verification_reference": null,
+
+  "recovery_required": true,
+  "recovery_reference": null,
+
+  "contained_at": "2026-10-10T17:15:02Z",
+
+  "expires_at": null,
+
+  "reason": "Audit reconstruction of a containment transition that occurred without a contemporaneous Containment Receipt.",
+
+  "trace_reference": "TRACE-CONT-UNRECORDED-003",
+
+  "metadata": {
+    "risk_level": "high",
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "recording_status": {
+      "transition_occurred": true,
+      "receipt_created_at_transition_time": false,
+      "reconstructed_after_fact": true,
+      "reconstructed_at": "2026-10-10T17:30:00Z",
+      "recording_delay_seconds": 898
+    },
+
+    "observed_transition": [
+      "AUTHORIZED",
+      "HELD"
+    ],
+
+    "contemporaneous_record": {
+      "present": false,
+      "containment_receipt_reference": null
+    },
+
+    "audit_reconstruction": {
+      "performed": true,
+      "performed_by": "audit-service-001",
+      "source_evidence": [
+        "TRACE-CONT-UNRECORDED-003",
+        "SNAPSHOT-003",
+        "EVIDENCE-BUNDLE-003"
+      ]
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-014",
+        "invariant": "SAFETY-INV-014",
+        "name": "Containment Transition Unrecorded",
+        "severity": "high",
+        "reason": "The safety-relevant transition from AUTHORIZED to HELD occurred without a contemporaneous machine-readable Containment Receipt."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-014": {
+        "result": "FAIL",
+        "reason": "The containment state transition was only reconstructed after the fact and was not explicitly recorded when the transition occurred."
+      },
+
+      "SAFETY-INV-015": {
+        "result": "PASS",
+        "reason": "State, trace, trigger evidence, and a containment snapshot were preserved despite the missing contemporaneous receipt."
+      }
+    },
+
+    "risk": {
+      "state_transition_visibility": "insufficient",
+      "real_time_verifiability": false,
+      "downstream_systems_could_confirm_containment": false,
+      "reason": "Other components could not reliably determine that the operation had entered HELD because no containment receipt existed at transition time."
+    },
+
+    "expected_safe_behavior": {
+      "required_transition": "AUTHORIZED_TO_HELD_WITH_RECEIPT",
+      "required_actions": [
+        "create a Containment Receipt atomically with or immediately after the containment transition",
+        "assign a stable containment_receipt_id",
+        "link the trigger, prior state, restrictions, and evidence preservation state",
+        "publish or expose the containment state to authorized downstream components",
+        "preserve the receipt in the safety trace",
+        "avoid relying on post-hoc reconstruction as the primary containment record"
+      ]
+    }
+  }
+}
