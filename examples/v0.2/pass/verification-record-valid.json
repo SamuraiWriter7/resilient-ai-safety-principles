@@ -1,0 +1,129 @@
+{
+  "schema_version": "0.2.0",
+  "verification_id": "VERIFY-001",
+
+  "subject": {
+    "subject_id": "op-production-update-001",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "verifier": {
+    "verifier_id": "safety-verifier-001",
+    "verifier_type": "SAFETY_SERVICE",
+    "independent_from_subject": true,
+    "independent_from_executor": true,
+    "domain": "safety-control"
+  },
+
+  "evidence": {
+    "items": [
+      {
+        "evidence_id": "EVIDENCE-STATE-001",
+        "evidence_type": "STATE_SNAPSHOT",
+        "observed_at": "2026-10-10T17:18:00Z",
+        "source": "snapshot-service-001",
+        "reference": "SNAPSHOT-001",
+        "trusted": true
+      },
+      {
+        "evidence_id": "EVIDENCE-TRACE-001",
+        "evidence_type": "TRACE",
+        "observed_at": "2026-10-10T17:18:05Z",
+        "source": "trace-service-001",
+        "reference": "TRACE-CONT-001",
+        "trusted": true
+      },
+      {
+        "evidence_id": "EVIDENCE-AUTH-001",
+        "evidence_type": "AUTHORITY_RECORD",
+        "observed_at": "2026-10-10T17:18:10Z",
+        "source": "authority-service-001",
+        "reference": "AUTH-ENV-001",
+        "trusted": true
+      },
+      {
+        "evidence_id": "EVIDENCE-OBS-001",
+        "evidence_type": "OBSERVATION",
+        "observed_at": "2026-10-10T17:18:15Z",
+        "source": "effect-monitor-001",
+        "reference": "OBS-EFFECT-001",
+        "trusted": true
+      }
+    ],
+
+    "freshness": {
+      "status": "FRESH",
+      "evaluated_at": "2026-10-10T17:20:00Z",
+      "max_age_seconds": 300,
+      "oldest_evidence_age_seconds": 120
+    },
+
+    "sufficient": true,
+    "tamper_evident": true
+  },
+
+  "result": "VERIFIED_SAFE",
+
+  "confidence": 0.98,
+
+  "unresolved_conditions": [],
+
+  "recommendation": "ALLOW_REAUTHORIZATION",
+
+  "related_authority_reference": "AUTH-ENV-001",
+  "related_containment_reference": "CONT-RECEIPT-001",
+
+  "verified_at": "2026-10-10T17:20:00Z",
+
+  "expires_at": "2026-10-10T17:25:00Z",
+
+  "reason": "Independent verification confirmed that the changed target state is understood, no unsafe effect occurred, the containment evidence is intact, and any resumed execution must use fresh authorization.",
+
+  "trace_reference": "TRACE-VERIFY-001",
+
+  "metadata": {
+    "risk_level": "high",
+    "expected_result": "PASS",
+    "profile": "RESILIENT",
+
+    "executor_reference": "agent-executor-001",
+
+    "independence_check": {
+      "subject_id": "op-production-update-001",
+      "executor_id": "agent-executor-001",
+      "verifier_id": "safety-verifier-001",
+      "same_as_subject": false,
+      "same_as_executor": false,
+      "independent": true
+    },
+
+    "freshness_check": {
+      "verified_at": "2026-10-10T17:20:00Z",
+      "max_age_seconds": 300,
+      "oldest_evidence_observed_at": "2026-10-10T17:18:00Z",
+      "oldest_evidence_age_seconds": 120,
+      "within_allowed_age": true
+    },
+
+    "invariants": {
+      "SAFETY-INV-016": {
+        "result": "PASS",
+        "reason": "The verification was performed by a verifier logically independent from both the subject and the original executor."
+      },
+
+      "SAFETY-INV-017": {
+        "result": "PASS",
+        "reason": "The safety conclusion is based on sufficient evidence classified as FRESH and within the declared maximum evidence age."
+      }
+    },
+
+    "expected_next_steps": [
+      "create a Recovery Receipt referencing this Verification Record",
+      "do not automatically restore the previous Authority Envelope",
+      "perform fresh evaluation for any resumed execution",
+      "issue a new or explicitly re-authorized Authority Envelope",
+      "preserve the verification decision in the safety trace"
+    ]
+  }
+}
