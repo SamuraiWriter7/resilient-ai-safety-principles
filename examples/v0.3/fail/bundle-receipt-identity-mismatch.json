@@ -1,0 +1,233 @@
+{
+  "schema_version": "0.3.0",
+  "bundle_id": "BUNDLE-IDENTITY-MISMATCH-001",
+
+  "operation": {
+    "operation_id": "op-production-update-010",
+    "risk_level": "high",
+    "status": "REAUTHORIZED",
+    "parent_operation_id": null,
+    "successor_operation_id": "op-production-update-010-r1"
+  },
+
+  "subject": {
+    "subject_id": "op-production-update-010",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "receipts": {
+    "authority": {
+      "receipt_id": "AUTH-ENV-010",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-010",
+      "operation_id": "op-production-update-010",
+      "trace_reference": "TRACE-AUTH-010",
+      "issued_at": "2026-10-10T19:00:00Z"
+    },
+
+    "containment": {
+      "receipt_id": "CONT-RECEIPT-010",
+      "receipt_type": "CONTAINMENT_RECEIPT",
+      "subject_id": "op-production-update-010",
+      "operation_id": "op-production-update-010",
+      "trace_reference": "TRACE-CONT-010",
+      "issued_at": "2026-10-10T19:10:00Z"
+    },
+
+    "verification": {
+      "receipt_id": "VERIFY-044",
+      "receipt_type": "VERIFICATION_RECORD",
+      "subject_id": "op-database-maintenance-044",
+      "operation_id": "op-database-maintenance-044",
+      "trace_reference": "TRACE-VERIFY-044",
+      "issued_at": "2026-10-10T19:15:00Z"
+    },
+
+    "recovery": {
+      "receipt_id": "RECOVERY-010",
+      "receipt_type": "RECOVERY_RECEIPT",
+      "subject_id": "op-production-update-010",
+      "operation_id": "op-production-update-010",
+      "trace_reference": "TRACE-RECOVERY-010",
+      "issued_at": "2026-10-10T19:20:00Z"
+    },
+
+    "successor_authority": {
+      "receipt_id": "AUTH-ENV-011",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-010-r1",
+      "operation_id": "op-production-update-010-r1",
+      "trace_reference": "TRACE-AUTH-011",
+      "issued_at": "2026-10-10T19:21:00Z"
+    }
+  },
+
+  "chain": {
+    "links": [
+      {
+        "from": "AUTH-ENV-010",
+        "to": "op-production-update-010",
+        "relation": "AUTHORIZES"
+      },
+      {
+        "from": "op-production-update-010",
+        "to": "CONT-RECEIPT-010",
+        "relation": "TRIGGERED_CONTAINMENT"
+      },
+      {
+        "from": "CONT-RECEIPT-010",
+        "to": "VERIFY-044",
+        "relation": "VERIFIES"
+      },
+      {
+        "from": "VERIFY-044",
+        "to": "RECOVERY-010",
+        "relation": "JUSTIFIES_RECOVERY"
+      },
+      {
+        "from": "RECOVERY-010",
+        "to": "AUTH-ENV-011",
+        "relation": "REAUTHORIZES"
+      },
+      {
+        "from": "op-production-update-010",
+        "to": "op-production-update-010-r1",
+        "relation": "SUCCEEDS"
+      }
+    ],
+
+    "complete": true,
+    "missing_links": [],
+    "conflicting_final_states": false,
+
+    "declared_final_states": [
+      "REAUTHORIZED"
+    ],
+
+    "replay_detected": false,
+    "replayed_receipt_ids": []
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BUNDLE-IDENTITY-MISMATCH-001",
+    "all_receipts_reachable": true,
+
+    "reachable_receipt_ids": [
+      "AUTH-ENV-010",
+      "CONT-RECEIPT-010",
+      "VERIFY-044",
+      "RECOVERY-010",
+      "AUTH-ENV-011"
+    ],
+
+    "missing_receipt_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-10T19:00:00Z",
+  "closed_at": null,
+
+  "reason": "The bundle contains a Verification Record that belongs to a different operation and therefore does not form a single coherent safety event.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "cross_receipt_checks": {
+      "authority_operation_match": true,
+      "containment_operation_match": true,
+      "verification_containment_match": false,
+      "recovery_verification_match": false,
+      "recovery_successor_authority_match": true,
+      "subject_continuity_valid": false,
+      "trace_continuity_valid": true
+    },
+
+    "identity_mismatch": {
+      "expected_operation_id": "op-production-update-010",
+      "mismatched_receipt_id": "VERIFY-044",
+      "mismatched_receipt_type": "VERIFICATION_RECORD",
+      "actual_operation_id": "op-database-maintenance-044",
+      "actual_subject_id": "op-database-maintenance-044"
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-021",
+        "invariant": "SAFETY-INV-021",
+        "name": "Receipt Identity Mismatch",
+        "severity": "critical",
+        "reason": "VERIFY-044 belongs to op-database-maintenance-044 but was inserted into the safety chain for op-production-update-010."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-021": {
+        "result": "FAIL",
+        "reason": "The Verification Record belongs to a different operation and safety event."
+      },
+
+      "SAFETY-INV-022": {
+        "result": "FAIL",
+        "reason": "Subject continuity is broken because the verification subject silently changes from op-production-update-010 to op-database-maintenance-044."
+      },
+
+      "SAFETY-INV-023": {
+        "result": "PASS",
+        "reason": "AUTH-ENV-010 is correctly bound to op-production-update-010."
+      },
+
+      "SAFETY-INV-024": {
+        "result": "PASS",
+        "reason": "CONT-RECEIPT-010 is correctly linked to the original operation."
+      },
+
+      "SAFETY-INV-025": {
+        "result": "FAIL",
+        "reason": "The verification linked after containment does not belong to the contained operation."
+      },
+
+      "SAFETY-INV-026": {
+        "result": "FAIL",
+        "reason": "RECOVERY-010 relies on a Verification Record from an unrelated operation."
+      },
+
+      "SAFETY-INV-027": {
+        "result": "FAIL",
+        "reason": "The apparent chain is structurally connected but causally broken by the unrelated Verification Record."
+      },
+
+      "SAFETY-INV-028": {
+        "result": "PASS",
+        "reason": "Only one final state is declared."
+      },
+
+      "SAFETY-INV-029": {
+        "result": "PASS",
+        "reason": "No receipt replay is explicitly detected in this fixture."
+      },
+
+      "SAFETY-INV-030": {
+        "result": "PASS",
+        "reason": "All receipt IDs are technically reachable in trace; the primary problem is identity consistency rather than trace reachability."
+      }
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject VERIFY-044 from this bundle",
+        "prevent RECOVERY-010 from relying on VERIFY-044",
+        "keep op-production-update-010 in its current contained state",
+        "locate or create a Verification Record for op-production-update-010",
+        "rebuild the receipt chain using matching subject and operation identities",
+        "preserve the mismatch event in trace",
+        "prevent re-authorization until receipt identity consistency is restored"
+      ]
+    }
+  }
+}
