@@ -1,0 +1,147 @@
+{
+  "schema_version": "0.2.0",
+  "verification_id": "VERIFY-STALE-001",
+
+  "subject": {
+    "subject_id": "op-production-update-005",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "verifier": {
+    "verifier_id": "safety-verifier-005",
+    "verifier_type": "SAFETY_SERVICE",
+    "independent_from_subject": true,
+    "independent_from_executor": true,
+    "domain": "safety-control"
+  },
+
+  "evidence": {
+    "items": [
+      {
+        "evidence_id": "EVIDENCE-STATE-STALE-001",
+        "evidence_type": "STATE_SNAPSHOT",
+        "observed_at": "2026-10-10T16:00:00Z",
+        "source": "snapshot-service-001",
+        "reference": "SNAPSHOT-STALE-001",
+        "trusted": true
+      },
+      {
+        "evidence_id": "EVIDENCE-TRACE-STALE-001",
+        "evidence_type": "TRACE",
+        "observed_at": "2026-10-10T16:02:00Z",
+        "source": "trace-service-001",
+        "reference": "TRACE-STALE-001",
+        "trusted": true
+      },
+      {
+        "evidence_id": "EVIDENCE-AUTH-STALE-001",
+        "evidence_type": "AUTHORITY_RECORD",
+        "observed_at": "2026-10-10T16:03:00Z",
+        "source": "authority-service-001",
+        "reference": "AUTH-ENV-005",
+        "trusted": true
+      }
+    ],
+
+    "freshness": {
+      "status": "FRESH",
+      "evaluated_at": "2026-10-10T17:40:00Z",
+      "max_age_seconds": 300,
+      "oldest_evidence_age_seconds": 6000
+    },
+
+    "sufficient": true,
+    "tamper_evident": true
+  },
+
+  "result": "VERIFIED_SAFE",
+
+  "confidence": 0.97,
+
+  "unresolved_conditions": [],
+
+  "recommendation": "ALLOW_REAUTHORIZATION",
+
+  "related_authority_reference": "AUTH-ENV-005",
+  "related_containment_reference": "CONT-RECEIPT-005",
+
+  "verified_at": "2026-10-10T17:40:00Z",
+
+  "expires_at": "2026-10-10T17:45:00Z",
+
+  "reason": "The verifier declared the operation safe based on previously collected state, trace, and authority evidence.",
+
+  "trace_reference": "TRACE-VERIFY-STALE-001",
+
+  "metadata": {
+    "risk_level": "high",
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "executor_reference": "agent-executor-005",
+
+    "independence_check": {
+      "subject_id": "op-production-update-005",
+      "executor_id": "agent-executor-005",
+      "verifier_id": "safety-verifier-005",
+      "same_as_executor": false,
+      "independent": true
+    },
+
+    "freshness_check": {
+      "verified_at": "2026-10-10T17:40:00Z",
+      "max_age_seconds": 300,
+      "oldest_evidence_observed_at": "2026-10-10T16:00:00Z",
+      "oldest_evidence_age_seconds": 6000,
+      "within_allowed_age": false,
+      "declared_freshness_status": "FRESH",
+      "calculated_freshness_status": "STALE"
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-017",
+        "invariant": "SAFETY-INV-017",
+        "name": "Stale Evidence Used for Current Safety Verification",
+        "severity": "critical",
+        "reason": "The verification declared VERIFIED_SAFE even though the oldest evidence was 6000 seconds old and exceeded the declared maximum age of 300 seconds."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-016": {
+        "result": "PASS",
+        "reason": "The verifier is logically independent from both the subject and the original executor."
+      },
+
+      "SAFETY-INV-017": {
+        "result": "FAIL",
+        "reason": "The safety conclusion relied on evidence older than the permitted freshness window while incorrectly labeling that evidence as FRESH."
+      }
+    },
+
+    "risk": {
+      "current_state_known": false,
+      "target_state_may_have_changed": true,
+      "authority_state_may_have_changed": true,
+      "new_effects_may_have_occurred": true,
+      "reason": "Evidence that was valid earlier does not establish the current safety state after the permitted freshness window has elapsed."
+    },
+
+    "expected_safe_behavior": {
+      "required_result": "STALE_EVIDENCE",
+      "required_recommendation": "REQUIRE_MORE_EVIDENCE",
+      "required_actions": [
+        "reject VERIFIED_SAFE as the current verification result",
+        "keep the operation in HELD",
+        "classify the existing evidence as STALE",
+        "collect a fresh state snapshot",
+        "collect fresh authority and trace evidence",
+        "re-evaluate any changed target or network state",
+        "create a new Verification Record using fresh evidence",
+        "prevent re-authorization until current safety is independently verified"
+      ]
+    }
+  }
+}
