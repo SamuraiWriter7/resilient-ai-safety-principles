@@ -1,0 +1,238 @@
+{
+  "schema_version": "0.3.0",
+  "bundle_id": "BUNDLE-RECOVERY-VERIFY-MISMATCH-001",
+
+  "operation": {
+    "operation_id": "op-production-update-060",
+    "risk_level": "high",
+    "status": "RECOVERED",
+    "parent_operation_id": null,
+    "successor_operation_id": "op-production-update-060-r1"
+  },
+
+  "subject": {
+    "subject_id": "op-production-update-060",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "receipts": {
+    "authority": {
+      "receipt_id": "AUTH-ENV-060",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-060",
+      "operation_id": "op-production-update-060",
+      "trace_reference": "TRACE-AUTH-060",
+      "issued_at": "2026-10-11T08:40:00Z"
+    },
+
+    "containment": {
+      "receipt_id": "CONT-RECEIPT-060",
+      "receipt_type": "CONTAINMENT_RECEIPT",
+      "subject_id": "op-production-update-060",
+      "operation_id": "op-production-update-060",
+      "trace_reference": "TRACE-CONT-060",
+      "issued_at": "2026-10-11T08:50:00Z"
+    },
+
+    "verification": {
+      "receipt_id": "VERIFY-060",
+      "receipt_type": "VERIFICATION_RECORD",
+      "subject_id": "op-production-update-060",
+      "operation_id": "op-production-update-060",
+      "trace_reference": "TRACE-VERIFY-060",
+      "issued_at": "2026-10-11T09:00:00Z"
+    },
+
+    "recovery": {
+      "receipt_id": "RECOVERY-060",
+      "receipt_type": "RECOVERY_RECEIPT",
+      "subject_id": "op-production-update-060",
+      "operation_id": "op-production-update-060",
+      "trace_reference": "TRACE-RECOVERY-060",
+      "issued_at": "2026-10-11T09:10:00Z"
+    },
+
+    "successor_authority": {
+      "receipt_id": "AUTH-ENV-061",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-060-r1",
+      "operation_id": "op-production-update-060-r1",
+      "trace_reference": "TRACE-AUTH-061",
+      "issued_at": "2026-10-11T09:11:00Z"
+    }
+  },
+
+  "chain": {
+    "links": [
+      {
+        "from": "AUTH-ENV-060",
+        "to": "op-production-update-060",
+        "relation": "AUTHORIZES"
+      },
+      {
+        "from": "op-production-update-060",
+        "to": "CONT-RECEIPT-060",
+        "relation": "TRIGGERED_CONTAINMENT"
+      },
+      {
+        "from": "CONT-RECEIPT-060",
+        "to": "VERIFY-060",
+        "relation": "VERIFIES"
+      },
+      {
+        "from": "VERIFY-999",
+        "to": "RECOVERY-060",
+        "relation": "JUSTIFIES_RECOVERY"
+      },
+      {
+        "from": "RECOVERY-060",
+        "to": "AUTH-ENV-061",
+        "relation": "REAUTHORIZES"
+      },
+      {
+        "from": "op-production-update-060",
+        "to": "op-production-update-060-r1",
+        "relation": "SUCCEEDS"
+      }
+    ],
+
+    "complete": false,
+
+    "missing_links": [
+      "VERIFY-060 -> RECOVERY-060"
+    ],
+
+    "conflicting_final_states": false,
+
+    "declared_final_states": [
+      "REAUTHORIZED"
+    ],
+
+    "replay_detected": false,
+    "replayed_receipt_ids": []
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BUNDLE-RECOVERY-VERIFY-MISMATCH-001",
+    "all_receipts_reachable": true,
+
+    "reachable_receipt_ids": [
+      "AUTH-ENV-060",
+      "CONT-RECEIPT-060",
+      "VERIFY-060",
+      "RECOVERY-060",
+      "AUTH-ENV-061"
+    ],
+
+    "missing_receipt_ids": [],
+
+    "trace_continuity": "PARTIAL"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-11T08:40:00Z",
+  "closed_at": null,
+
+  "reason": "RECOVERY-060 belongs to the correct operation but is justified by VERIFY-999 instead of the applicable Verification Record VERIFY-060.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "cross_receipt_checks": {
+      "authority_operation_match": true,
+      "containment_operation_match": true,
+      "verification_containment_match": true,
+      "recovery_operation_match": true,
+      "recovery_verification_match": false,
+      "successor_authority_match": true,
+      "subject_continuity_valid": true,
+      "trace_continuity_valid": false
+    },
+
+    "recovery_verification_mismatch": {
+      "recovery_receipt_id": "RECOVERY-060",
+      "expected_verification_id": "VERIFY-060",
+      "actual_verification_id": "VERIFY-999",
+      "correct_verification_reference_present": false,
+      "same_operation_id": true
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-026",
+        "invariant": "SAFETY-INV-026",
+        "name": "Recovery References Wrong Verification",
+        "severity": "critical",
+        "reason": "RECOVERY-060 is justified by VERIFY-999 rather than the Verification Record VERIFY-060 that evaluated the applicable containment state."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-021": {
+        "result": "PASS",
+        "reason": "The declared bundle receipts belong to the same safety event."
+      },
+
+      "SAFETY-INV-022": {
+        "result": "PASS",
+        "reason": "Subject continuity is preserved across authority, containment, verification, and recovery."
+      },
+
+      "SAFETY-INV-023": {
+        "result": "PASS",
+        "reason": "AUTH-ENV-060 is explicitly bound to op-production-update-060."
+      },
+
+      "SAFETY-INV-024": {
+        "result": "PASS",
+        "reason": "CONT-RECEIPT-060 is causally linked to the operation."
+      },
+
+      "SAFETY-INV-025": {
+        "result": "PASS",
+        "reason": "VERIFY-060 correctly follows CONT-RECEIPT-060."
+      },
+
+      "SAFETY-INV-026": {
+        "result": "FAIL",
+        "reason": "RECOVERY-060 does not reference the applicable Verification Record VERIFY-060."
+      },
+
+      "SAFETY-INV-027": {
+        "result": "FAIL",
+        "reason": "The safety chain is broken between verification and recovery."
+      },
+
+      "SAFETY-INV-028": {
+        "result": "PASS",
+        "reason": "Only one final state is declared."
+      },
+
+      "SAFETY-INV-029": {
+        "result": "PASS",
+        "reason": "No receipt replay is detected."
+      },
+
+      "SAFETY-INV-030": {
+        "result": "FAIL",
+        "reason": "The bundle receipts are reachable, but causal trace continuity is incomplete because recovery points to an external verification record."
+      }
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject RECOVERY-060 as valid recovery evidence",
+        "keep the operation in its safe contained or verified state",
+        "determine what VERIFY-999 actually belongs to",
+        "bind RECOVERY-060 to VERIFY-060 if that verification legitimately justified recovery",
+        "otherwise create a new Recovery Receipt based on the applicable Verification Record",
+        "preserve the mismatched verification reference in trace",
+        "prevent successor authorization from becoming effective until verification-to-recovery continuity is restored"
+      ]
+    }
+  }
+}
