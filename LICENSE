@@ -1,21 +1,19 @@
-MIT License
+Resilient AI Safety Principles
+Licensing Notice
 
-Copyright (c) 2026 SHIDENKAI ALPHA
+Unless otherwise stated:
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. Documentation, specifications, Markdown files, diagrams, explanatory text,
+   and other non-code materials in this repository are licensed under the
+   Creative Commons Attribution 4.0 International License (CC BY 4.0).
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+2. Source code, scripts, JSON Schemas, GitHub Actions workflows, and other
+   software-related materials in this repository are licensed under the
+   Apache License, Version 2.0.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+See:
+
+- LICENSE-DOCS for the CC BY 4.0 license terms.
+- LICENSE-CODE for the Apache License 2.0 terms.
+
+Where a file contains an explicit license notice, that notice takes precedence.
