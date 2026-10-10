@@ -1,0 +1,212 @@
+{
+  "schema_version": "0.3.0",
+  "bundle_id": "BUNDLE-001",
+
+  "operation": {
+    "operation_id": "op-production-update-001",
+    "risk_level": "high",
+    "status": "REAUTHORIZED",
+    "parent_operation_id": null,
+    "successor_operation_id": "op-production-update-001-r1"
+  },
+
+  "subject": {
+    "subject_id": "op-production-update-001",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "receipts": {
+    "authority": {
+      "receipt_id": "AUTH-ENV-001",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-001",
+      "operation_id": "op-production-update-001",
+      "trace_reference": "TRACE-AUTH-001",
+      "issued_at": "2026-10-10T16:00:00Z"
+    },
+
+    "containment": {
+      "receipt_id": "CONT-RECEIPT-001",
+      "receipt_type": "CONTAINMENT_RECEIPT",
+      "subject_id": "op-production-update-001",
+      "operation_id": "op-production-update-001",
+      "trace_reference": "TRACE-CONT-001",
+      "issued_at": "2026-10-10T17:10:02Z"
+    },
+
+    "verification": {
+      "receipt_id": "VERIFY-001",
+      "receipt_type": "VERIFICATION_RECORD",
+      "subject_id": "op-production-update-001",
+      "operation_id": "op-production-update-001",
+      "trace_reference": "TRACE-VERIFY-001",
+      "issued_at": "2026-10-10T17:20:00Z"
+    },
+
+    "recovery": {
+      "receipt_id": "RECOVERY-001",
+      "receipt_type": "RECOVERY_RECEIPT",
+      "subject_id": "op-production-update-001",
+      "operation_id": "op-production-update-001",
+      "trace_reference": "TRACE-RECOVERY-001",
+      "issued_at": "2026-10-10T17:23:00Z"
+    },
+
+    "successor_authority": {
+      "receipt_id": "AUTH-ENV-002",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-001-r1",
+      "operation_id": "op-production-update-001-r1",
+      "trace_reference": "TRACE-AUTH-002",
+      "issued_at": "2026-10-10T17:24:00Z"
+    }
+  },
+
+  "chain": {
+    "links": [
+      {
+        "from": "AUTH-ENV-001",
+        "to": "op-production-update-001",
+        "relation": "AUTHORIZES"
+      },
+      {
+        "from": "op-production-update-001",
+        "to": "CONT-RECEIPT-001",
+        "relation": "TRIGGERED_CONTAINMENT"
+      },
+      {
+        "from": "CONT-RECEIPT-001",
+        "to": "VERIFY-001",
+        "relation": "VERIFIES"
+      },
+      {
+        "from": "VERIFY-001",
+        "to": "RECOVERY-001",
+        "relation": "JUSTIFIES_RECOVERY"
+      },
+      {
+        "from": "RECOVERY-001",
+        "to": "AUTH-ENV-002",
+        "relation": "REAUTHORIZES"
+      },
+      {
+        "from": "op-production-update-001",
+        "to": "op-production-update-001-r1",
+        "relation": "SUCCEEDS"
+      }
+    ],
+
+    "complete": true,
+    "missing_links": [],
+    "conflicting_final_states": false,
+
+    "declared_final_states": [
+      "REAUTHORIZED"
+    ],
+
+    "replay_detected": false,
+    "replayed_receipt_ids": []
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BUNDLE-001",
+    "all_receipts_reachable": true,
+
+    "reachable_receipt_ids": [
+      "AUTH-ENV-001",
+      "CONT-RECEIPT-001",
+      "VERIFY-001",
+      "RECOVERY-001",
+      "AUTH-ENV-002"
+    ],
+
+    "missing_receipt_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "CLOSED",
+
+  "created_at": "2026-10-10T16:00:00Z",
+  "closed_at": "2026-10-10T17:24:00Z",
+
+  "reason": "The high-risk operation was authorized, contained after a target-state change, independently verified, recovered, and bound to a new reduced Authority Envelope through a complete safety receipt chain.",
+
+  "metadata": {
+    "expected_result": "PASS",
+    "profile": "RESILIENT",
+
+    "cross_receipt_checks": {
+      "authority_operation_match": true,
+      "containment_operation_match": true,
+      "verification_containment_match": true,
+      "recovery_verification_match": true,
+      "recovery_successor_authority_match": true,
+      "subject_continuity_valid": true,
+      "trace_continuity_valid": true
+    },
+
+    "identity_chain": {
+      "original_operation_id": "op-production-update-001",
+      "successor_operation_id": "op-production-update-001-r1",
+      "original_authority_id": "AUTH-ENV-001",
+      "containment_receipt_id": "CONT-RECEIPT-001",
+      "verification_id": "VERIFY-001",
+      "recovery_receipt_id": "RECOVERY-001",
+      "successor_authority_id": "AUTH-ENV-002"
+    },
+
+    "invariants": {
+      "SAFETY-INV-021": {
+        "result": "PASS",
+        "reason": "All receipt identifiers belong to the same declared safety event or its explicitly linked successor event."
+      },
+
+      "SAFETY-INV-022": {
+        "result": "PASS",
+        "reason": "The original operation identity remains continuous through containment, verification, and recovery, with the successor explicitly declared."
+      },
+
+      "SAFETY-INV-023": {
+        "result": "PASS",
+        "reason": "The original operation is explicitly bound to AUTH-ENV-001 through the AUTHORIZES chain link."
+      },
+
+      "SAFETY-INV-024": {
+        "result": "PASS",
+        "reason": "The containment receipt is causally linked to the original operation."
+      },
+
+      "SAFETY-INV-025": {
+        "result": "PASS",
+        "reason": "VERIFY-001 is linked to CONT-RECEIPT-001 as the verification step for the contained operation."
+      },
+
+      "SAFETY-INV-026": {
+        "result": "PASS",
+        "reason": "RECOVERY-001 is explicitly justified by VERIFY-001."
+      },
+
+      "SAFETY-INV-027": {
+        "result": "PASS",
+        "reason": "The safety chain is complete and declares no missing links."
+      },
+
+      "SAFETY-INV-028": {
+        "result": "PASS",
+        "reason": "The bundle declares exactly one compatible final state: REAUTHORIZED."
+      },
+
+      "SAFETY-INV-029": {
+        "result": "PASS",
+        "reason": "No receipt is reused for an unrelated operation and no replay is detected."
+      },
+
+      "SAFETY-INV-030": {
+        "result": "PASS",
+        "reason": "All safety-critical receipts are reachable through the bundle trace and trace continuity is COMPLETE."
+      }
+    }
+  }
+}
