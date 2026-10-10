@@ -1,0 +1,116 @@
+{
+  "schema_version": "0.2.0",
+  "recovery_receipt_id": "RECOVERY-001",
+
+  "subject": {
+    "subject_id": "op-production-update-001",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "source_state": {
+    "state": "HELD",
+    "source_reference": "TRACE-CONT-001",
+    "containment_receipt_reference": "CONT-RECEIPT-001",
+    "failure_reference": null
+  },
+
+  "recovery_action": {
+    "action_type": "RECONFIGURE",
+    "performed_by": "recovery-service-001",
+    "performed_at": "2026-10-10T17:22:00Z",
+    "description": "Re-evaluated the changed target state, updated the execution plan, and prepared the operation for fresh authorization.",
+    "repair_reference": "REPAIR-PLAN-001"
+  },
+
+  "verification": {
+    "verification_reference": "VERIFY-001",
+    "verification_result": "VERIFIED_SAFE",
+    "independent": true
+  },
+
+  "authority_outcome": {
+    "previous_authority_reference": "AUTH-ENV-001",
+    "previous_authority_restored": false,
+    "new_authority_required": true,
+    "new_authority_reference": "AUTH-ENV-002",
+    "authority_reduced": true
+  },
+
+  "successor": {
+    "successor_id": "op-production-update-001-r1",
+    "successor_type": "OPERATION",
+    "inherits_blockers": false,
+    "inherits_authority": false
+  },
+
+  "unresolved_blockers": [],
+
+  "final_state": "REAUTHORIZED",
+
+  "recovered_at": "2026-10-10T17:23:00Z",
+
+  "reason": "The held operation was independently verified, reconfigured for the changed target state, and connected to a newly issued reduced Authority Envelope rather than restoring the previous authority.",
+
+  "trace_reference": "TRACE-RECOVERY-001",
+
+  "metadata": {
+    "risk_level": "high",
+    "expected_result": "PASS",
+    "profile": "RESILIENT",
+
+    "recovery_chain": {
+      "authority_before_containment": "AUTH-ENV-001",
+      "containment_receipt": "CONT-RECEIPT-001",
+      "verification_record": "VERIFY-001",
+      "recovery_receipt": "RECOVERY-001",
+      "authority_after_recovery": "AUTH-ENV-002"
+    },
+
+    "authority_comparison": {
+      "old_authority": {
+        "authority_envelope_id": "AUTH-ENV-001",
+        "max_operations": 1,
+        "max_runtime_seconds": 300,
+        "max_fan_out": 1,
+        "cross_domain_effect_allowed": false
+      },
+
+      "new_authority": {
+        "authority_envelope_id": "AUTH-ENV-002",
+        "max_operations": 1,
+        "max_runtime_seconds": 180,
+        "max_fan_out": 1,
+        "cross_domain_effect_allowed": false
+      },
+
+      "authority_expanded": false,
+      "authority_reduced": true
+    },
+
+    "invariants": {
+      "SAFETY-INV-018": {
+        "result": "PASS",
+        "reason": "The Recovery Receipt explicitly references the HELD source state and the Containment Receipt from which recovery began."
+      },
+
+      "SAFETY-INV-019": {
+        "result": "PASS",
+        "reason": "The previous Authority Envelope was not automatically restored; a new reduced Authority Envelope was required."
+      },
+
+      "SAFETY-INV-020": {
+        "result": "PASS",
+        "reason": "The recovery concludes with the explicit final state REAUTHORIZED."
+      }
+    },
+
+    "expected_next_steps": [
+      "validate AUTH-ENV-002 before execution",
+      "ensure the successor operation does not inherit stale authority",
+      "bind the successor operation to the new Authority Envelope",
+      "preserve the complete recovery chain in trace",
+      "resume execution only under the newly authorized scope"
+    ]
+  }
+}
