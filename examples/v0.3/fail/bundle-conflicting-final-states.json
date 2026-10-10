@@ -1,0 +1,247 @@
+{
+  "schema_version": "0.3.0",
+  "bundle_id": "BUNDLE-CONFLICTING-FINAL-STATES-001",
+
+  "operation": {
+    "operation_id": "op-production-update-080",
+    "risk_level": "high",
+    "status": "UNKNOWN_FINAL_STATE",
+    "parent_operation_id": null,
+    "successor_operation_id": "op-production-update-080-r1"
+  },
+
+  "subject": {
+    "subject_id": "op-production-update-080",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "receipts": {
+    "authority": {
+      "receipt_id": "AUTH-ENV-080",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-080",
+      "operation_id": "op-production-update-080",
+      "trace_reference": "TRACE-AUTH-080",
+      "issued_at": "2026-10-11T09:30:00Z"
+    },
+
+    "containment": {
+      "receipt_id": "CONT-RECEIPT-080",
+      "receipt_type": "CONTAINMENT_RECEIPT",
+      "subject_id": "op-production-update-080",
+      "operation_id": "op-production-update-080",
+      "trace_reference": "TRACE-CONT-080",
+      "issued_at": "2026-10-11T09:40:00Z"
+    },
+
+    "verification": {
+      "receipt_id": "VERIFY-080",
+      "receipt_type": "VERIFICATION_RECORD",
+      "subject_id": "op-production-update-080",
+      "operation_id": "op-production-update-080",
+      "trace_reference": "TRACE-VERIFY-080",
+      "issued_at": "2026-10-11T09:50:00Z"
+    },
+
+    "recovery": {
+      "receipt_id": "RECOVERY-080",
+      "receipt_type": "RECOVERY_RECEIPT",
+      "subject_id": "op-production-update-080",
+      "operation_id": "op-production-update-080",
+      "trace_reference": "TRACE-RECOVERY-080",
+      "issued_at": "2026-10-11T10:00:00Z"
+    },
+
+    "successor_authority": {
+      "receipt_id": "AUTH-ENV-081",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-080-r1",
+      "operation_id": "op-production-update-080-r1",
+      "trace_reference": "TRACE-AUTH-081",
+      "issued_at": "2026-10-11T10:01:00Z"
+    }
+  },
+
+  "chain": {
+    "links": [
+      {
+        "from": "AUTH-ENV-080",
+        "to": "op-production-update-080",
+        "relation": "AUTHORIZES"
+      },
+      {
+        "from": "op-production-update-080",
+        "to": "CONT-RECEIPT-080",
+        "relation": "TRIGGERED_CONTAINMENT"
+      },
+      {
+        "from": "CONT-RECEIPT-080",
+        "to": "VERIFY-080",
+        "relation": "VERIFIES"
+      },
+      {
+        "from": "VERIFY-080",
+        "to": "RECOVERY-080",
+        "relation": "JUSTIFIES_RECOVERY"
+      },
+      {
+        "from": "RECOVERY-080",
+        "to": "AUTH-ENV-081",
+        "relation": "REAUTHORIZES"
+      },
+      {
+        "from": "op-production-update-080",
+        "to": "op-production-update-080-r1",
+        "relation": "SUCCEEDS"
+      }
+    ],
+
+    "complete": true,
+    "missing_links": [],
+
+    "conflicting_final_states": true,
+
+    "declared_final_states": [
+      "REAUTHORIZED",
+      "TERMINATED"
+    ],
+
+    "replay_detected": false,
+    "replayed_receipt_ids": []
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BUNDLE-CONFLICTING-FINAL-STATES-001",
+    "all_receipts_reachable": true,
+
+    "reachable_receipt_ids": [
+      "AUTH-ENV-080",
+      "CONT-RECEIPT-080",
+      "VERIFY-080",
+      "RECOVERY-080",
+      "AUTH-ENV-081"
+    ],
+
+    "missing_receipt_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-11T09:30:00Z",
+  "closed_at": null,
+
+  "reason": "The same recovery chain declares both REAUTHORIZED and TERMINATED as final states without representing separate successor branches.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "cross_receipt_checks": {
+      "authority_operation_match": true,
+      "containment_operation_match": true,
+      "verification_containment_match": true,
+      "recovery_verification_match": true,
+      "subject_continuity_valid": true,
+      "receipt_identity_consistent": true,
+      "chain_complete": true,
+      "final_state_consistency_valid": false,
+      "trace_continuity_valid": true
+    },
+
+    "final_state_conflict": {
+      "declared_states": [
+        "REAUTHORIZED",
+        "TERMINATED"
+      ],
+      "separate_successor_branches_present": false,
+      "states_mutually_compatible": false,
+      "authoritative_final_state_determinable": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-028",
+        "invariant": "SAFETY-INV-028",
+        "name": "Conflicting Final States",
+        "severity": "critical",
+        "reason": "The same safety chain declares both REAUTHORIZED and TERMINATED without explicitly separating them into distinct successor branches."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-021": {
+        "result": "PASS",
+        "reason": "All receipts belong to the same declared safety event or explicit successor."
+      },
+
+      "SAFETY-INV-022": {
+        "result": "PASS",
+        "reason": "Subject continuity is preserved."
+      },
+
+      "SAFETY-INV-023": {
+        "result": "PASS",
+        "reason": "AUTH-ENV-080 is explicitly bound to op-production-update-080."
+      },
+
+      "SAFETY-INV-024": {
+        "result": "PASS",
+        "reason": "CONT-RECEIPT-080 is causally linked to the operation."
+      },
+
+      "SAFETY-INV-025": {
+        "result": "PASS",
+        "reason": "VERIFY-080 correctly follows CONT-RECEIPT-080."
+      },
+
+      "SAFETY-INV-026": {
+        "result": "PASS",
+        "reason": "RECOVERY-080 is explicitly justified by VERIFY-080."
+      },
+
+      "SAFETY-INV-027": {
+        "result": "PASS",
+        "reason": "The receipt chain is otherwise complete and contains no missing transition."
+      },
+
+      "SAFETY-INV-028": {
+        "result": "FAIL",
+        "reason": "The bundle simultaneously declares REAUTHORIZED and TERMINATED as final outcomes for the same recovery chain."
+      },
+
+      "SAFETY-INV-029": {
+        "result": "PASS",
+        "reason": "No receipt replay is detected."
+      },
+
+      "SAFETY-INV-030": {
+        "result": "PASS",
+        "reason": "All receipts are reachable and trace continuity is COMPLETE."
+      }
+    },
+
+    "risk": {
+      "execution_state_ambiguous": true,
+      "authority_state_ambiguous": true,
+      "downstream_behavior_divergence_possible": true,
+      "reason": "One component may interpret the operation as authorized to resume while another interprets it as permanently terminated."
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject the bundle as having an authoritative final outcome",
+        "keep execution blocked while the conflict remains unresolved",
+        "determine which final state is authoritative",
+        "remove or supersede the invalid conflicting state",
+        "if multiple outcomes are legitimate, represent them as explicit separate successor branches",
+        "bind each successor branch to its own authority and trace context",
+        "preserve the final-state conflict in trace",
+        "allow execution only after a single compatible final state is established for each branch"
+      ]
+    }
+  }
+}
