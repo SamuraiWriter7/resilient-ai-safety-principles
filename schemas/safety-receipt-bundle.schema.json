@@ -1,0 +1,648 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/resilient-ai-safety-principles/schemas/safety-receipt-bundle.schema.json",
+  "title": "Safety Receipt Bundle",
+  "description": "Cross-receipt safety chain bundle for Resilient AI Safety Principles v0.3.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "operation",
+    "subject",
+    "receipts",
+    "chain",
+    "trace",
+    "bundle_status",
+    "created_at"
+  ],
+
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.3.0"
+    },
+
+    "bundle_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+
+    "operation": {
+      "$ref": "#/$defs/operation"
+    },
+
+    "subject": {
+      "$ref": "#/$defs/subject"
+    },
+
+    "receipts": {
+      "$ref": "#/$defs/receipts"
+    },
+
+    "chain": {
+      "$ref": "#/$defs/chain"
+    },
+
+    "trace": {
+      "$ref": "#/$defs/trace"
+    },
+
+    "bundle_status": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "CONTAINED",
+        "VERIFIED",
+        "RECOVERED",
+        "CLOSED",
+        "INVALID",
+        "INCOMPLETE"
+      ]
+    },
+
+    "created_at": {
+      "$ref": "#/$defs/dateTime"
+    },
+
+    "closed_at": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/dateTime"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+
+  "$defs": {
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "risk_level"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "parent_operation_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "successor_operation_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_id",
+        "subject_type"
+      ],
+      "properties": {
+        "subject_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "subject_type": {
+          "type": "string",
+          "enum": [
+            "OPERATION",
+            "AI_AGENT",
+            "AI_MODEL",
+            "SERVICE",
+            "NODE",
+            "PROCESS",
+            "AUTHORITY_DOMAIN",
+            "OTHER"
+          ]
+        },
+
+        "domain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "receipts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority"
+      ],
+      "properties": {
+        "authority": {
+          "$ref": "#/$defs/receiptReference"
+        },
+
+        "containment": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/receiptReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+
+        "verification": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/receiptReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+
+        "recovery": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/receiptReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+
+        "successor_authority": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/receiptReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+
+    "receiptReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_id",
+        "receipt_type",
+        "subject_id",
+        "trace_reference"
+      ],
+      "properties": {
+        "receipt_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "receipt_type": {
+          "type": "string",
+          "enum": [
+            "AUTHORITY_ENVELOPE",
+            "CONTAINMENT_RECEIPT",
+            "VERIFICATION_RECORD",
+            "RECOVERY_RECEIPT"
+          ]
+        },
+
+        "subject_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "operation_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "trace_reference": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "issued_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/dateTime"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+
+    "chain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "links",
+        "complete",
+        "conflicting_final_states",
+        "replay_detected"
+      ],
+      "properties": {
+        "links": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/chainLink"
+          }
+        },
+
+        "complete": {
+          "type": "boolean"
+        },
+
+        "missing_links": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+
+        "conflicting_final_states": {
+          "type": "boolean"
+        },
+
+        "declared_final_states": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "REAUTHORIZED",
+              "RESTRICTED",
+              "ISOLATED",
+              "TRANSFERRED",
+              "TERMINATED",
+              "COMPLETED"
+            ]
+          }
+        },
+
+        "replay_detected": {
+          "type": "boolean"
+        },
+
+        "replayed_receipt_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+
+    "chainLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "to",
+        "relation"
+      ],
+      "properties": {
+        "from": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "to": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "relation": {
+          "type": "string",
+          "enum": [
+            "AUTHORIZES",
+            "ATTEMPTED_UNDER",
+            "TRIGGERED_CONTAINMENT",
+            "CONTAINS",
+            "VERIFIES",
+            "JUSTIFIES_RECOVERY",
+            "RECOVERS_FROM",
+            "REAUTHORIZES",
+            "SUPERSEDES",
+            "SUCCEEDS"
+          ]
+        }
+      }
+    },
+
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trace_id",
+        "all_receipts_reachable"
+      ],
+      "properties": {
+        "trace_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "all_receipts_reachable": {
+          "type": "boolean"
+        },
+
+        "reachable_receipt_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+
+        "missing_receipt_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+
+        "trace_continuity": {
+          "type": "string",
+          "enum": [
+            "COMPLETE",
+            "PARTIAL",
+            "BROKEN",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "bundle_status": {
+            "const": "CLOSED"
+          }
+        },
+        "required": [
+          "bundle_status"
+        ]
+      },
+      "then": {
+        "required": [
+          "closed_at"
+        ],
+        "properties": {
+          "chain": {
+            "properties": {
+              "complete": {
+                "const": true
+              },
+              "conflicting_final_states": {
+                "const": false
+              },
+              "replay_detected": {
+                "const": false
+              }
+            },
+            "required": [
+              "complete",
+              "conflicting_final_states",
+              "replay_detected"
+            ]
+          },
+
+          "trace": {
+            "properties": {
+              "all_receipts_reachable": {
+                "const": true
+              },
+              "trace_continuity": {
+                "const": "COMPLETE"
+              }
+            },
+            "required": [
+              "all_receipts_reachable",
+              "trace_continuity"
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "bundle_status": {
+            "const": "RECOVERED"
+          }
+        },
+        "required": [
+          "bundle_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "receipts": {
+            "required": [
+              "containment",
+              "verification",
+              "recovery"
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "bundle_status": {
+            "const": "VERIFIED"
+          }
+        },
+        "required": [
+          "bundle_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "receipts": {
+            "required": [
+              "containment",
+              "verification"
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "bundle_status": {
+            "const": "CONTAINED"
+          }
+        },
+        "required": [
+          "bundle_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "receipts": {
+            "required": [
+              "containment"
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "chain": {
+            "properties": {
+              "complete": {
+                "const": true
+              }
+            },
+            "required": [
+              "complete"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "chain": {
+            "properties": {
+              "missing_links": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "chain": {
+            "properties": {
+              "replay_detected": {
+                "const": false
+              }
+            },
+            "required": [
+              "replay_detected"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "chain": {
+            "properties": {
+              "replayed_receipt_ids": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "chain": {
+            "properties": {
+              "conflicting_final_states": {
+                "const": false
+              }
+            },
+            "required": [
+              "conflicting_final_states"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "chain": {
+            "properties": {
+              "declared_final_states": {
+                "maxItems": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
