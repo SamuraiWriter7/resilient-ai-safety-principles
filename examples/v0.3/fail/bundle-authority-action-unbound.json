@@ -1,0 +1,233 @@
+{
+  "schema_version": "0.3.0",
+  "bundle_id": "BUNDLE-AUTHORITY-UNBOUND-001",
+
+  "operation": {
+    "operation_id": "op-production-update-030",
+    "risk_level": "high",
+    "status": "REAUTHORIZED",
+    "parent_operation_id": null,
+    "successor_operation_id": "op-production-update-030-r1"
+  },
+
+  "subject": {
+    "subject_id": "op-production-update-030",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "receipts": {
+    "authority": {
+      "receipt_id": "AUTH-ENV-030",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "agent-executor-030",
+      "operation_id": null,
+      "trace_reference": "TRACE-AUTH-030",
+      "issued_at": "2026-10-11T07:10:00Z"
+    },
+
+    "containment": {
+      "receipt_id": "CONT-RECEIPT-030",
+      "receipt_type": "CONTAINMENT_RECEIPT",
+      "subject_id": "op-production-update-030",
+      "operation_id": "op-production-update-030",
+      "trace_reference": "TRACE-CONT-030",
+      "issued_at": "2026-10-11T07:20:00Z"
+    },
+
+    "verification": {
+      "receipt_id": "VERIFY-030",
+      "receipt_type": "VERIFICATION_RECORD",
+      "subject_id": "op-production-update-030",
+      "operation_id": "op-production-update-030",
+      "trace_reference": "TRACE-VERIFY-030",
+      "issued_at": "2026-10-11T07:30:00Z"
+    },
+
+    "recovery": {
+      "receipt_id": "RECOVERY-030",
+      "receipt_type": "RECOVERY_RECEIPT",
+      "subject_id": "op-production-update-030",
+      "operation_id": "op-production-update-030",
+      "trace_reference": "TRACE-RECOVERY-030",
+      "issued_at": "2026-10-11T07:40:00Z"
+    },
+
+    "successor_authority": {
+      "receipt_id": "AUTH-ENV-031",
+      "receipt_type": "AUTHORITY_ENVELOPE",
+      "subject_id": "op-production-update-030-r1",
+      "operation_id": "op-production-update-030-r1",
+      "trace_reference": "TRACE-AUTH-031",
+      "issued_at": "2026-10-11T07:41:00Z"
+    }
+  },
+
+  "chain": {
+    "links": [
+      {
+        "from": "AUTH-ENV-030",
+        "to": "agent-executor-030",
+        "relation": "AUTHORIZES"
+      },
+      {
+        "from": "op-production-update-030",
+        "to": "CONT-RECEIPT-030",
+        "relation": "TRIGGERED_CONTAINMENT"
+      },
+      {
+        "from": "CONT-RECEIPT-030",
+        "to": "VERIFY-030",
+        "relation": "VERIFIES"
+      },
+      {
+        "from": "VERIFY-030",
+        "to": "RECOVERY-030",
+        "relation": "JUSTIFIES_RECOVERY"
+      },
+      {
+        "from": "RECOVERY-030",
+        "to": "AUTH-ENV-031",
+        "relation": "REAUTHORIZES"
+      },
+      {
+        "from": "op-production-update-030",
+        "to": "op-production-update-030-r1",
+        "relation": "SUCCEEDS"
+      }
+    ],
+
+    "complete": true,
+    "missing_links": [],
+    "conflicting_final_states": false,
+
+    "declared_final_states": [
+      "REAUTHORIZED"
+    ],
+
+    "replay_detected": false,
+    "replayed_receipt_ids": []
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BUNDLE-AUTHORITY-UNBOUND-001",
+    "all_receipts_reachable": true,
+
+    "reachable_receipt_ids": [
+      "AUTH-ENV-030",
+      "CONT-RECEIPT-030",
+      "VERIFY-030",
+      "RECOVERY-030",
+      "AUTH-ENV-031"
+    ],
+
+    "missing_receipt_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-11T07:10:00Z",
+  "closed_at": null,
+
+  "reason": "The bundle contains an Authority Envelope, but that authority is not explicitly bound to op-production-update-030.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "cross_receipt_checks": {
+      "authority_present": true,
+      "authority_operation_match": false,
+      "authority_action_binding_present": false,
+      "containment_operation_match": true,
+      "verification_operation_match": true,
+      "recovery_operation_match": true,
+      "subject_continuity_valid": true,
+      "trace_continuity_valid": true
+    },
+
+    "authority_binding_failure": {
+      "authority_receipt_id": "AUTH-ENV-030",
+      "authority_subject_id": "agent-executor-030",
+      "authority_operation_id": null,
+      "expected_operation_id": "op-production-update-030",
+      "explicit_operation_binding_present": false,
+      "operation_attempted_under_relation_present": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-023",
+        "invariant": "SAFETY-INV-023",
+        "name": "Authority Not Bound to Operation",
+        "severity": "critical",
+        "reason": "AUTH-ENV-030 exists but does not identify or explicitly authorize op-production-update-030."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-021": {
+        "result": "PASS",
+        "reason": "All receipts are associated with the same declared safety event."
+      },
+
+      "SAFETY-INV-022": {
+        "result": "PASS",
+        "reason": "Containment, verification, and recovery preserve subject continuity for op-production-update-030."
+      },
+
+      "SAFETY-INV-023": {
+        "result": "FAIL",
+        "reason": "The Authority Envelope is not explicitly bound to op-production-update-030 and therefore cannot establish that the operation was attempted under that authority."
+      },
+
+      "SAFETY-INV-024": {
+        "result": "PASS",
+        "reason": "CONT-RECEIPT-030 is causally linked to the operation."
+      },
+
+      "SAFETY-INV-025": {
+        "result": "PASS",
+        "reason": "VERIFY-030 follows the applicable containment record."
+      },
+
+      "SAFETY-INV-026": {
+        "result": "PASS",
+        "reason": "RECOVERY-030 is explicitly justified by VERIFY-030."
+      },
+
+      "SAFETY-INV-027": {
+        "result": "FAIL",
+        "reason": "The chain lacks the required authority-to-operation binding even though later receipt links are present."
+      },
+
+      "SAFETY-INV-028": {
+        "result": "PASS",
+        "reason": "Only one final state is declared."
+      },
+
+      "SAFETY-INV-029": {
+        "result": "PASS",
+        "reason": "No receipt replay is detected."
+      },
+
+      "SAFETY-INV-030": {
+        "result": "PASS",
+        "reason": "All receipts are reachable through the bundle trace."
+      }
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject the bundle as proof of authorized execution",
+        "do not infer operation authority merely because an Authority Envelope exists",
+        "require AUTH-ENV-030 to explicitly bind to op-production-update-030 or provide an ATTEMPTED_UNDER or AUTHORIZES relation to that operation",
+        "preserve the missing authority-binding condition in trace",
+        "prevent recovery from being treated as a complete valid chain until authority-to-action binding is established"
+      ]
+    }
+  }
+}
