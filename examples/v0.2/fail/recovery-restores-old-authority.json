@@ -1,0 +1,120 @@
+{
+  "schema_version": "0.2.0",
+  "recovery_receipt_id": "RECOVERY-RESTORE-OLD-AUTH-001",
+
+  "subject": {
+    "subject_id": "op-production-update-007",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "source_state": {
+    "state": "HELD",
+    "source_reference": "TRACE-CONT-007",
+    "containment_receipt_reference": "CONT-RECEIPT-007",
+    "failure_reference": null
+  },
+
+  "recovery_action": {
+    "action_type": "REAUTHORIZE",
+    "performed_by": "recovery-service-001",
+    "performed_at": "2026-10-10T18:30:00Z",
+    "description": "The operation was cleared after verification, but the recovery process restored the pre-containment authority without issuing a fresh Authority Envelope.",
+    "repair_reference": "REPAIR-PLAN-007"
+  },
+
+  "verification": {
+    "verification_reference": "VERIFY-007",
+    "verification_result": "VERIFIED_SAFE",
+    "independent": true
+  },
+
+  "authority_outcome": {
+    "previous_authority_reference": "AUTH-ENV-007",
+    "previous_authority_restored": true,
+    "new_authority_required": false,
+    "new_authority_reference": null,
+    "authority_reduced": false
+  },
+
+  "successor": {
+    "successor_id": "op-production-update-007-r1",
+    "successor_type": "OPERATION",
+    "inherits_blockers": false,
+    "inherits_authority": true
+  },
+
+  "unresolved_blockers": [],
+
+  "final_state": "REAUTHORIZED",
+
+  "recovered_at": "2026-10-10T18:31:00Z",
+
+  "reason": "The recovery process treated successful verification as permission to restore the previous Authority Envelope without a fresh authority decision.",
+
+  "trace_reference": "TRACE-RECOVERY-RESTORE-OLD-AUTH-001",
+
+  "metadata": {
+    "risk_level": "high",
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "authority_recovery_check": {
+      "previous_authority_reference": "AUTH-ENV-007",
+      "previous_authority_restored": true,
+      "fresh_authority_evaluation_present": false,
+      "fresh_independent_approval_present": false,
+      "replacement_authority_envelope_present": false,
+      "successor_inherits_old_authority": true
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-019",
+        "invariant": "SAFETY-INV-019",
+        "name": "Automatic Restoration of Previous Authority",
+        "severity": "critical",
+        "reason": "Recovery automatically restored the pre-containment Authority Envelope instead of requiring a fresh authority decision."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-018": {
+        "result": "PASS",
+        "reason": "The Recovery Receipt explicitly identifies the HELD source state and originating Containment Receipt."
+      },
+
+      "SAFETY-INV-019": {
+        "result": "FAIL",
+        "reason": "The previous Authority Envelope was automatically restored after recovery without fresh evaluation, approval, or issuance."
+      },
+
+      "SAFETY-INV-020": {
+        "result": "PASS",
+        "reason": "The Recovery Receipt declares the explicit final state REAUTHORIZED."
+      }
+    },
+
+    "risk": {
+      "stale_authority_reactivated": true,
+      "changed_conditions_reassessed": false,
+      "authority_scope_revalidated": false,
+      "successor_received_old_authority": true,
+      "reason": "The conditions that caused containment may have changed the validity of the original authority assumptions, so restoring the old authority can reactivate stale or excessive privileges."
+    },
+
+    "expected_safe_behavior": {
+      "required_transition": "KEEP_HELD_PENDING_FRESH_AUTHORITY",
+      "required_actions": [
+        "do not restore the previous Authority Envelope",
+        "treat the previous authority as stale after containment",
+        "perform a fresh authority evaluation",
+        "require fresh independent approval where applicable",
+        "issue a new Authority Envelope",
+        "bind the successor operation to the new Authority Envelope",
+        "prevent the successor from inheriting stale authority",
+        "record the authority transition in trace before execution resumes"
+      ]
+    }
+  }
+}
