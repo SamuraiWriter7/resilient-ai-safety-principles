@@ -1,0 +1,117 @@
+{
+  "schema_version": "0.2.0",
+  "recovery_receipt_id": "RECOVERY-MISSING-SOURCE-001",
+
+  "subject": {
+    "subject_id": "op-production-update-006",
+    "subject_type": "OPERATION",
+    "domain": "production-maintenance"
+  },
+
+  "recovery_action": {
+    "action_type": "RECONFIGURE",
+    "performed_by": "recovery-service-001",
+    "performed_at": "2026-10-10T18:25:00Z",
+    "description": "The operation was reconfigured and prepared for resumed execution, but the recovery process did not identify the state from which recovery began.",
+    "repair_reference": "REPAIR-PLAN-006"
+  },
+
+  "verification": {
+    "verification_reference": "VERIFY-006",
+    "verification_result": "VERIFIED_SAFE",
+    "independent": true
+  },
+
+  "authority_outcome": {
+    "previous_authority_reference": "AUTH-ENV-006",
+    "previous_authority_restored": false,
+    "new_authority_required": true,
+    "new_authority_reference": "AUTH-ENV-007",
+    "authority_reduced": true
+  },
+
+  "successor": {
+    "successor_id": "op-production-update-006-r1",
+    "successor_type": "OPERATION",
+    "inherits_blockers": false,
+    "inherits_authority": false
+  },
+
+  "unresolved_blockers": [],
+
+  "final_state": "REAUTHORIZED",
+
+  "recovered_at": "2026-10-10T18:26:00Z",
+
+  "reason": "A recovery outcome was declared without identifying the containment, failure, or prior safety state from which recovery occurred.",
+
+  "trace_reference": "TRACE-RECOVERY-MISSING-SOURCE-001",
+
+  "metadata": {
+    "risk_level": "high",
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "source_state_check": {
+      "source_state_present": false,
+      "source_reference_present": false,
+      "containment_receipt_reference_present": false,
+      "failure_reference_present": false,
+      "recovery_origin_reconstructable": false
+    },
+
+    "known_related_records": {
+      "verification_reference": "VERIFY-006",
+      "previous_authority_reference": "AUTH-ENV-006",
+      "new_authority_reference": "AUTH-ENV-007"
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-018",
+        "invariant": "SAFETY-INV-018",
+        "name": "Recovery Source State Missing",
+        "severity": "critical",
+        "reason": "The Recovery Receipt does not identify the state, containment event, or failure condition from which recovery began."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-018": {
+        "result": "FAIL",
+        "reason": "The recovery process has no explicit source_state or source_reference, so the origin of recovery cannot be reconstructed."
+      },
+
+      "SAFETY-INV-019": {
+        "result": "PASS",
+        "reason": "The previous authority was not automatically restored and a new Authority Envelope was required."
+      },
+
+      "SAFETY-INV-020": {
+        "result": "PASS",
+        "reason": "The Recovery Receipt declares the explicit final state REAUTHORIZED."
+      }
+    },
+
+    "risk": {
+      "causal_chain_complete": false,
+      "recovery_origin_known": false,
+      "containment_link_known": false,
+      "auditability": "insufficient",
+      "reason": "Without a source state, auditors and downstream systems cannot determine what condition was resolved, whether blockers were carried forward, or whether recovery was actually justified."
+    },
+
+    "expected_safe_behavior": {
+      "required_transition": "REJECT_RECOVERY_RECEIPT",
+      "required_actions": [
+        "reject the Recovery Receipt as incomplete",
+        "keep the affected operation in its current safe state",
+        "identify the source HELD, QUARANTINED, RESTRICTED, ISOLATED, FAILED, REVOKED, or EXPIRED state",
+        "reference the originating Containment Receipt or failure record",
+        "reconstruct the causal recovery chain from trace where possible",
+        "issue a corrected Recovery Receipt",
+        "prevent resumed execution until the recovery origin is explicitly established"
+      ]
+    }
+  }
+}
