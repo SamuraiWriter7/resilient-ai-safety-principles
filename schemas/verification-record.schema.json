@@ -1,0 +1,491 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/resilient-ai-safety-principles/schemas/verification-record.schema.json",
+  "title": "Independent Verification Record",
+  "description": "Machine-readable independent safety verification record for Resilient AI Safety Principles v0.2.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "schema_version",
+    "verification_id",
+    "subject",
+    "verifier",
+    "evidence",
+    "result",
+    "verified_at",
+    "trace_reference"
+  ],
+
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.2.0"
+    },
+
+    "verification_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+
+    "subject": {
+      "$ref": "#/$defs/subject"
+    },
+
+    "verifier": {
+      "$ref": "#/$defs/verifier"
+    },
+
+    "evidence": {
+      "$ref": "#/$defs/evidence"
+    },
+
+    "result": {
+      "type": "string",
+      "enum": [
+        "VERIFIED_SAFE",
+        "VERIFIED_UNSAFE",
+        "INCONCLUSIVE",
+        "INSUFFICIENT_EVIDENCE",
+        "STALE_EVIDENCE"
+      ]
+    },
+
+    "confidence": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+
+    "unresolved_conditions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+
+    "recommendation": {
+      "type": "string",
+      "enum": [
+        "ALLOW_REAUTHORIZATION",
+        "KEEP_HELD",
+        "QUARANTINE",
+        "RESTRICT",
+        "ISOLATE",
+        "TERMINATE",
+        "REQUIRE_MORE_EVIDENCE",
+        "NO_RECOMMENDATION"
+      ]
+    },
+
+    "related_authority_reference": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+
+    "related_containment_reference": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+
+    "verified_at": {
+      "$ref": "#/$defs/dateTime"
+    },
+
+    "expires_at": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/dateTime"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+
+    "trace_reference": {
+      "type": "string",
+      "minLength": 1
+    },
+
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+
+  "$defs": {
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_id",
+        "subject_type"
+      ],
+      "properties": {
+        "subject_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "subject_type": {
+          "type": "string",
+          "enum": [
+            "OPERATION",
+            "AI_AGENT",
+            "AI_MODEL",
+            "SERVICE",
+            "NODE",
+            "PROCESS",
+            "AUTHORITY_ENVELOPE",
+            "CONTAINMENT_RECEIPT",
+            "RECOVERY_ACTION",
+            "OTHER"
+          ]
+        },
+
+        "domain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "verifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verifier_id",
+        "verifier_type",
+        "independent_from_subject",
+        "independent_from_executor"
+      ],
+      "properties": {
+        "verifier_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "verifier_type": {
+          "type": "string",
+          "enum": [
+            "AI_AGENT",
+            "SAFETY_SERVICE",
+            "POLICY_ENGINE",
+            "HUMAN",
+            "MULTI_PARTY_REVIEW",
+            "EXTERNAL_AUDITOR",
+            "OTHER"
+          ]
+        },
+
+        "independent_from_subject": {
+          "type": "boolean"
+        },
+
+        "independent_from_executor": {
+          "type": "boolean"
+        },
+
+        "domain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "items",
+        "freshness"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidenceItem"
+          }
+        },
+
+        "freshness": {
+          "$ref": "#/$defs/freshness"
+        },
+
+        "sufficient": {
+          "type": "boolean"
+        },
+
+        "tamper_evident": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "evidenceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "evidence_type",
+        "observed_at"
+      ],
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "evidence_type": {
+          "type": "string",
+          "enum": [
+            "STATE_SNAPSHOT",
+            "TRACE",
+            "AUTHORITY_RECORD",
+            "APPROVAL_RECORD",
+            "EXECUTION_RECORD",
+            "OBSERVATION",
+            "POLICY_RESULT",
+            "NETWORK_STATE",
+            "HUMAN_REVIEW",
+            "OTHER"
+          ]
+        },
+
+        "observed_at": {
+          "$ref": "#/$defs/dateTime"
+        },
+
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "trusted": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "FRESH",
+            "STALE",
+            "MIXED",
+            "UNKNOWN"
+          ]
+        },
+
+        "evaluated_at": {
+          "$ref": "#/$defs/dateTime"
+        },
+
+        "max_age_seconds": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+
+        "oldest_evidence_age_seconds": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "VERIFIED_SAFE"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "then": {
+        "properties": {
+          "verifier": {
+            "properties": {
+              "independent_from_subject": {
+                "const": true
+              },
+              "independent_from_executor": {
+                "const": true
+              }
+            },
+            "required": [
+              "independent_from_subject",
+              "independent_from_executor"
+            ]
+          },
+
+          "evidence": {
+            "properties": {
+              "freshness": {
+                "properties": {
+                  "status": {
+                    "const": "FRESH"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+
+              "sufficient": {
+                "const": true
+              }
+            },
+            "required": [
+              "sufficient"
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "STALE_EVIDENCE"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence": {
+            "properties": {
+              "freshness": {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "STALE",
+                      "MIXED",
+                      "UNKNOWN"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "INSUFFICIENT_EVIDENCE"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence": {
+            "properties": {
+              "sufficient": {
+                "const": false
+              }
+            },
+            "required": [
+              "sufficient"
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "enum": [
+              "INCONCLUSIVE",
+              "INSUFFICIENT_EVIDENCE",
+              "STALE_EVIDENCE"
+            ]
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "then": {
+        "properties": {
+          "recommendation": {
+            "enum": [
+              "KEEP_HELD",
+              "QUARANTINE",
+              "RESTRICT",
+              "ISOLATE",
+              "REQUIRE_MORE_EVIDENCE",
+              "NO_RECOMMENDATION"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
