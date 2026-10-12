@@ -1,0 +1,270 @@
+{
+  "schema_version": "0.4.0",
+  "branch_bundle_id": "BRANCH-BUNDLE-MISSING-MERGE-OUTCOME-001",
+
+  "parent": {
+    "parent_operation_id": "op-production-update-390",
+    "source_bundle_id": "BUNDLE-390",
+    "source_recovery_id": "RECOVERY-390",
+    "source_authority_id": "AUTH-ENV-390",
+    "source_trace_id": "TRACE-BUNDLE-390"
+  },
+
+  "branches": [
+    {
+      "branch_id": "BRANCH-A-390",
+      "successor_operation_id": "op-production-update-390-a",
+      "state": "COMPLETED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-391-A",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+        "scope": {
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "timeout_seconds"
+          ]
+        },
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-A-390",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-A-390",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    },
+
+    {
+      "branch_id": "BRANCH-B-390",
+      "successor_operation_id": "op-production-update-390-b",
+      "state": "COMPLETED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-391-B",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+        "scope": {
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "retry_limit"
+          ]
+        },
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-B-390",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-B-390",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    }
+  ],
+
+  "branch_policy": {
+    "explicit_branch_ids_required": true,
+    "authority_isolation_required": true,
+    "implicit_authority_inheritance_allowed": false,
+    "branch_specific_verification_required": true,
+    "branch_specific_trace_required": true,
+    "carry_open_blockers_required": true
+  },
+
+  "merge": {
+    "requested": true,
+
+    "source_branch_ids": [
+      "BRANCH-A-390",
+      "BRANCH-B-390"
+    ],
+
+    "compatibility_check": {
+      "performed": true,
+      "authority_compatible": true,
+      "state_compatible": true,
+      "blockers_compatible": true,
+      "verification_compatible": true,
+      "trace_compatible": true,
+      "performed_by": "merge-safety-verifier-390",
+      "performed_at": "2026-10-12T02:18:00Z"
+    },
+
+    "authority_decision": {
+      "new_authority_required": true,
+      "new_authority_reference": "AUTH-ENV-MERGED-391",
+      "authority_aggregated_from_branches": false,
+      "scope_reduced_or_equal": true
+    },
+
+    "outcome": {
+      "resulting_operation_id": "op-production-update-390-merged",
+      "resulting_branch_id": "BRANCH-MERGED-390",
+      "reason": "Compatibility and authority evaluation completed, but no authoritative merge outcome state was recorded."
+    }
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BRANCH-BUNDLE-MISSING-MERGE-OUTCOME-001",
+    "all_branches_reachable": true,
+
+    "branch_trace_ids": [
+      "TRACE-BRANCH-A-390",
+      "TRACE-BRANCH-B-390"
+    ],
+
+    "missing_branch_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-12T02:12:00Z",
+  "closed_at": null,
+
+  "reason": "The merge process completed compatibility and authority checks but failed to declare an explicit resulting merge state.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "merge_outcome_failure": {
+      "merge_requested": true,
+      "compatibility_check_performed": true,
+      "all_compatibility_dimensions_passed": true,
+      "fresh_merge_authority_present": true,
+      "resulting_operation_id_present": true,
+      "resulting_branch_id_present": true,
+      "outcome_state_present": false,
+      "authoritative_final_state_known": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-040",
+        "invariant": "SAFETY-INV-040",
+        "name": "Merge Outcome Missing",
+        "severity": "critical",
+        "reason": "The merge does not declare whether its authoritative outcome is MERGED, RESTRICTED, HELD, ISOLATED, REJECTED, or TERMINATED."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-031": {
+        "result": "PASS",
+        "reason": "Both source branches have explicit stable branch identifiers."
+      },
+
+      "SAFETY-INV-032": {
+        "result": "PASS",
+        "reason": "Each source branch maintains isolated authority."
+      },
+
+      "SAFETY-INV-033": {
+        "result": "PASS",
+        "reason": "Neither source branch implicitly inherits parent authority."
+      },
+
+      "SAFETY-INV-034": {
+        "result": "PASS",
+        "reason": "Each source branch has branch-specific independent verification."
+      },
+
+      "SAFETY-INV-035": {
+        "result": "PASS",
+        "reason": "Each source branch has an independently reconstructable trace."
+      },
+
+      "SAFETY-INV-036": {
+        "result": "PASS",
+        "reason": "All required merge compatibility dimensions were explicitly evaluated."
+      },
+
+      "SAFETY-INV-037": {
+        "result": "PASS",
+        "reason": "The source authorities were not aggregated and a fresh merge authority was issued."
+      },
+
+      "SAFETY-INV-038": {
+        "result": "PASS",
+        "reason": "No unresolved blockers apply to this fixture."
+      },
+
+      "SAFETY-INV-039": {
+        "result": "PASS",
+        "reason": "No branch termination occurred."
+      },
+
+      "SAFETY-INV-040": {
+        "result": "FAIL",
+        "reason": "The merge outcome has no explicit state, leaving downstream systems unable to determine the authoritative post-merge condition."
+      }
+    },
+
+    "risk": {
+      "post_merge_state_ambiguous": true,
+      "execution_decision_ambiguous": true,
+      "authority_activation_ambiguous": true,
+      "downstream_state_divergence_possible": true,
+      "reason": "Different components may independently infer different post-merge states when no authoritative merge outcome is recorded."
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject the merge as complete",
+        "do not activate AUTH-ENV-MERGED-391",
+        "require an explicit merge outcome state",
+        "select exactly one authoritative state from MERGED, RESTRICTED, HELD, ISOLATED, REJECTED, or TERMINATED",
+        "bind the resulting operation and branch identity to that state",
+        "preserve the missing-outcome condition in trace",
+        "allow downstream execution only after the merge outcome is explicit"
+      ]
+    }
+  }
+}
