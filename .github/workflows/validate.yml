@@ -68,6 +68,52 @@ jobs:
           test -d examples/v0.2/pass
           test -d examples/v0.2/fail
 
+      - name: Check v0.3 schema
+        run: |
+          test -f schemas/safety-receipt-bundle.schema.json
+
+      - name: Check v0.3 example directories
+        run: |
+          test -d examples/v0.3/pass
+          test -d examples/v0.3/fail
+
+      - name: Check v0.3 reference examples
+        run: |
+          test -f examples/v0.3/pass/safety-receipt-bundle-valid.json
+          test -f examples/v0.3/fail/bundle-receipt-identity-mismatch.json
+          test -f examples/v0.3/fail/bundle-subject-discontinuity.json
+          test -f examples/v0.3/fail/bundle-authority-action-unbound.json
+          test -f examples/v0.3/fail/bundle-containment-cause-missing.json
+          test -f examples/v0.3/fail/bundle-verification-containment-mismatch.json
+          test -f examples/v0.3/fail/bundle-recovery-verification-mismatch.json
+          test -f examples/v0.3/fail/bundle-broken-safety-chain.json
+          test -f examples/v0.3/fail/bundle-conflicting-final-states.json
+          test -f examples/v0.3/fail/bundle-receipt-replay.json
+          test -f examples/v0.3/fail/bundle-trace-discontinuity.json
+
+      - name: Check v0.4 schema
+        run: |
+          test -f schemas/safety-branch-bundle.schema.json
+
+      - name: Check v0.4 example directories
+        run: |
+          test -d examples/v0.4/pass
+          test -d examples/v0.4/fail
+
+      - name: Check v0.4 reference examples
+        run: |
+          test -f examples/v0.4/pass/safety-branch-bundle-valid.json
+          test -f examples/v0.4/fail/branch-identity-missing.json
+          test -f examples/v0.4/fail/branch-authority-shared.json
+          test -f examples/v0.4/fail/branch-inherits-parent-authority.json
+          test -f examples/v0.4/fail/branch-verification-shared.json
+          test -f examples/v0.4/fail/branch-trace-shared.json
+          test -f examples/v0.4/fail/merge-without-compatibility-check.json
+          test -f examples/v0.4/fail/merge-conflicting-authority.json
+          test -f examples/v0.4/fail/branch-drops-parent-blocker.json
+          test -f examples/v0.4/fail/branch-termination-propagates.json
+          test -f examples/v0.4/fail/merge-outcome-missing.json
+
       - name: Check validator
         run: |
           test -f scripts/validate_examples.py
@@ -85,6 +131,10 @@ jobs:
               Path("examples/fail"),
               Path("examples/v0.2/pass"),
               Path("examples/v0.2/fail"),
+              Path("examples/v0.3/pass"),
+              Path("examples/v0.3/fail"),
+              Path("examples/v0.4/pass"),
+              Path("examples/v0.4/fail"),
           ]
 
           files = []
@@ -111,5 +161,5 @@ jobs:
           print(f"JSON files checked: {len(files)}")
           PY
 
-      - name: Validate v0.1 and v0.2 examples
+      - name: Validate v0.1, v0.2, v0.3, and v0.4 examples
         run: python scripts/validate_examples.py
