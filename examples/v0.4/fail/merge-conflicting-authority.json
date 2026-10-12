@@ -1,0 +1,305 @@
+{
+  "schema_version": "0.4.0",
+  "branch_bundle_id": "BRANCH-BUNDLE-CONFLICTING-AUTHORITY-001",
+
+  "parent": {
+    "parent_operation_id": "op-production-update-360",
+    "source_bundle_id": "BUNDLE-360",
+    "source_recovery_id": "RECOVERY-360",
+    "source_authority_id": "AUTH-ENV-360",
+    "source_trace_id": "TRACE-BUNDLE-360"
+  },
+
+  "branches": [
+    {
+      "branch_id": "BRANCH-A-360",
+      "successor_operation_id": "op-production-update-360-a",
+      "state": "COMPLETED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-361-A",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+
+        "scope": {
+          "service": "service-x",
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "timeout_seconds"
+          ],
+          "allowed_actions": [
+            "read",
+            "update"
+          ]
+        },
+
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-A-360",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-A-360",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    },
+
+    {
+      "branch_id": "BRANCH-B-360",
+      "successor_operation_id": "op-production-update-360-b",
+      "state": "COMPLETED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-361-B",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+
+        "scope": {
+          "service": "service-y",
+          "resource_path": "/services/service-y/routing",
+          "allowed_fields": [
+            "routing_policy"
+          ],
+          "allowed_actions": [
+            "read",
+            "update",
+            "activate"
+          ]
+        },
+
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-B-360",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-B-360",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    }
+  ],
+
+  "branch_policy": {
+    "explicit_branch_ids_required": true,
+    "authority_isolation_required": true,
+    "implicit_authority_inheritance_allowed": false,
+    "branch_specific_verification_required": true,
+    "branch_specific_trace_required": true,
+    "carry_open_blockers_required": true
+  },
+
+  "merge": {
+    "requested": true,
+
+    "source_branch_ids": [
+      "BRANCH-A-360",
+      "BRANCH-B-360"
+    ],
+
+    "compatibility_check": {
+      "performed": true,
+      "authority_compatible": false,
+      "state_compatible": true,
+      "blockers_compatible": true,
+      "verification_compatible": true,
+      "trace_compatible": true,
+      "performed_by": "merge-safety-verifier-360",
+      "performed_at": "2026-10-12T02:05:00Z"
+    },
+
+    "authority_decision": {
+      "new_authority_required": false,
+      "new_authority_reference": null,
+      "authority_aggregated_from_branches": true,
+      "scope_reduced_or_equal": false
+    },
+
+    "outcome": {
+      "state": "MERGED",
+      "resulting_operation_id": "op-production-update-360-merged",
+      "resulting_branch_id": "BRANCH-MERGED-360",
+      "reason": "The merge proceeded by combining the authority scopes of BRANCH-A-360 and BRANCH-B-360 despite an explicit authority incompatibility result."
+    }
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BRANCH-BUNDLE-CONFLICTING-AUTHORITY-001",
+    "all_branches_reachable": true,
+
+    "branch_trace_ids": [
+      "TRACE-BRANCH-A-360",
+      "TRACE-BRANCH-B-360"
+    ],
+
+    "missing_branch_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-12T01:55:00Z",
+  "closed_at": null,
+
+  "reason": "The source branches were merged even though their authority scopes were declared incompatible, and the resulting authority was produced by aggregating sibling permissions.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "conflicting_authority_failure": {
+      "branch_a_id": "BRANCH-A-360",
+      "branch_b_id": "BRANCH-B-360",
+      "branch_a_authority": "AUTH-ENV-361-A",
+      "branch_b_authority": "AUTH-ENV-361-B",
+      "authority_compatible": false,
+      "authority_aggregated_from_branches": true,
+      "fresh_merge_authority_issued": false,
+      "result_scope_reduced_or_equal": false
+    },
+
+    "effective_merged_authority": {
+      "derived_from": [
+        "AUTH-ENV-361-A",
+        "AUTH-ENV-361-B"
+      ],
+      "effective_services": [
+        "service-x",
+        "service-y"
+      ],
+      "effective_actions": [
+        "read",
+        "update",
+        "activate"
+      ],
+      "authority_union_created": true
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-037",
+        "invariant": "SAFETY-INV-037",
+        "name": "Conflicting Authority Merge",
+        "severity": "critical",
+        "reason": "The merge combines incompatible branch authority scopes instead of requiring a new independently issued authority decision."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-031": {
+        "result": "PASS",
+        "reason": "Both source branches have explicit stable branch identifiers."
+      },
+
+      "SAFETY-INV-032": {
+        "result": "PASS",
+        "reason": "Authority remains isolated while the source branches operate independently."
+      },
+
+      "SAFETY-INV-033": {
+        "result": "PASS",
+        "reason": "Neither source branch implicitly inherits the parent Authority Envelope."
+      },
+
+      "SAFETY-INV-034": {
+        "result": "PASS",
+        "reason": "Each source branch has its own branch-specific independent Verification Record."
+      },
+
+      "SAFETY-INV-035": {
+        "result": "PASS",
+        "reason": "Each source branch has an independently reconstructable trace."
+      },
+
+      "SAFETY-INV-036": {
+        "result": "PASS",
+        "reason": "A compatibility evaluation was performed before merge and explicitly identified authority incompatibility."
+      },
+
+      "SAFETY-INV-037": {
+        "result": "FAIL",
+        "reason": "The system ignored authority_compatible=false and created the merged authority by aggregating permissions from both source branches."
+      },
+
+      "SAFETY-INV-038": {
+        "result": "PASS",
+        "reason": "No unresolved parent blockers apply to this fixture."
+      },
+
+      "SAFETY-INV-039": {
+        "result": "PASS",
+        "reason": "No branch termination occurred."
+      },
+
+      "SAFETY-INV-040": {
+        "result": "PASS",
+        "reason": "The merge outcome is explicitly declared as MERGED, although the decision itself violates the authority merge invariant."
+      }
+    },
+
+    "risk": {
+      "authority_union_created": true,
+      "privilege_amplification_possible": true,
+      "cross_domain_authority_created": true,
+      "least_authority_preserved": false,
+      "reason": "Combining individually bounded branch permissions can create a merged authority scope that no individual branch was ever authorized to possess."
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject the MERGED outcome",
+        "do not aggregate AUTH-ENV-361-A and AUTH-ENV-361-B",
+        "keep BRANCH-A-360 and BRANCH-B-360 as separate authority domains",
+        "require a new independent authority decision for any merged operation",
+        "define the merged scope explicitly rather than computing a union of sibling permissions",
+        "ensure the new scope is no broader than necessary",
+        "repeat compatibility evaluation against the newly proposed authority",
+        "preserve the rejected conflicting-authority merge in trace",
+        "prevent op-production-update-360-merged from becoming active until valid authority is issued"
+      ]
+    }
+  }
+}
