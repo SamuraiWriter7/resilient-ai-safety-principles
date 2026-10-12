@@ -1,0 +1,287 @@
+{
+  "schema_version": "0.4.0",
+  "branch_bundle_id": "BRANCH-BUNDLE-001",
+
+  "parent": {
+    "parent_operation_id": "op-production-update-200",
+    "source_bundle_id": "BUNDLE-200",
+    "source_recovery_id": "RECOVERY-200",
+    "source_authority_id": "AUTH-ENV-200",
+    "source_trace_id": "TRACE-BUNDLE-200"
+  },
+
+  "branches": [
+    {
+      "branch_id": "BRANCH-A-001",
+      "successor_operation_id": "op-production-update-200-a",
+      "state": "COMPLETED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-201-A",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+
+        "scope": {
+          "service": "service-x",
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "timeout_seconds"
+          ]
+        },
+
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-A-001",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [
+        {
+          "blocker_id": "BLOCKER-200-OBSERVATION",
+          "source": "RECOVERY-200",
+          "description": "Post-change observation must remain active until branch completion.",
+          "status": "RESOLVED",
+          "carried_forward": true,
+          "applies_to_branch": true
+        }
+      ],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-A-001",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    },
+
+    {
+      "branch_id": "BRANCH-B-001",
+      "successor_operation_id": "op-production-update-200-b",
+      "state": "COMPLETED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-201-B",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+
+        "scope": {
+          "service": "service-x",
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "retry_limit"
+          ]
+        },
+
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-B-001",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [
+        {
+          "blocker_id": "BLOCKER-200-OBSERVATION",
+          "source": "RECOVERY-200",
+          "description": "Post-change observation must remain active until branch completion.",
+          "status": "RESOLVED",
+          "carried_forward": true,
+          "applies_to_branch": true
+        }
+      ],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-B-001",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    }
+  ],
+
+  "branch_policy": {
+    "explicit_branch_ids_required": true,
+    "authority_isolation_required": true,
+    "implicit_authority_inheritance_allowed": false,
+    "branch_specific_verification_required": true,
+    "branch_specific_trace_required": true,
+    "carry_open_blockers_required": true
+  },
+
+  "merge": {
+    "requested": true,
+
+    "source_branch_ids": [
+      "BRANCH-A-001",
+      "BRANCH-B-001"
+    ],
+
+    "compatibility_check": {
+      "performed": true,
+      "authority_compatible": true,
+      "state_compatible": true,
+      "blockers_compatible": true,
+      "verification_compatible": true,
+      "trace_compatible": true,
+      "performed_by": "merge-safety-verifier-001",
+      "performed_at": "2026-10-12T00:20:00Z"
+    },
+
+    "authority_decision": {
+      "new_authority_required": true,
+      "new_authority_reference": "AUTH-ENV-MERGED-201",
+      "authority_aggregated_from_branches": false,
+      "scope_reduced_or_equal": true
+    },
+
+    "outcome": {
+      "state": "MERGED",
+      "resulting_operation_id": "op-production-update-200-merged",
+      "resulting_branch_id": "BRANCH-MERGED-001",
+      "reason": "Both branches completed under isolated authority, passed branch-specific verification, preserved blocker history, and passed merge compatibility checks."
+    }
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BRANCH-BUNDLE-001",
+    "all_branches_reachable": true,
+
+    "branch_trace_ids": [
+      "TRACE-BRANCH-A-001",
+      "TRACE-BRANCH-B-001"
+    ],
+
+    "missing_branch_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "MERGED",
+
+  "created_at": "2026-10-11T23:30:00Z",
+  "closed_at": "2026-10-12T00:21:00Z",
+
+  "reason": "Two independently authorized and verified successor branches were safely merged only after explicit compatibility evaluation and a new authority decision.",
+
+  "metadata": {
+    "expected_result": "PASS",
+    "profile": "RESILIENT",
+
+    "branch_checks": {
+      "all_branch_ids_explicit": true,
+      "branch_authority_isolated": true,
+      "implicit_parent_authority_inheritance": false,
+      "sibling_authority_sharing": false,
+      "all_verifications_branch_specific": true,
+      "all_branch_traces_reconstructable": true,
+      "all_applicable_blockers_carried": true,
+      "termination_locality_preserved": true
+    },
+
+    "merge_checks": {
+      "compatibility_check_performed": true,
+      "all_compatibility_dimensions_passed": true,
+      "branch_authorities_aggregated": false,
+      "fresh_merge_authority_present": true,
+      "merge_outcome_explicit": true
+    },
+
+    "invariants": {
+      "SAFETY-INV-031": {
+        "result": "PASS",
+        "reason": "Each successor has a stable and explicit branch_id."
+      },
+
+      "SAFETY-INV-032": {
+        "result": "PASS",
+        "reason": "Each branch uses an independent Authority Envelope and authority is not shared between sibling branches."
+      },
+
+      "SAFETY-INV-033": {
+        "result": "PASS",
+        "reason": "Neither successor silently inherits the parent authority; each branch has a separately referenced authority decision."
+      },
+
+      "SAFETY-INV-034": {
+        "result": "PASS",
+        "reason": "Each branch has its own branch-specific independent Verification Record."
+      },
+
+      "SAFETY-INV-035": {
+        "result": "PASS",
+        "reason": "Each branch has an independently reconstructable trace with parent, authority, verification, and blocker links."
+      },
+
+      "SAFETY-INV-036": {
+        "result": "PASS",
+        "reason": "Authority, state, blocker, verification, and trace compatibility were explicitly checked before merge."
+      },
+
+      "SAFETY-INV-037": {
+        "result": "PASS",
+        "reason": "Branch authorities were not aggregated; the merged operation uses a new Authority Envelope."
+      },
+
+      "SAFETY-INV-038": {
+        "result": "PASS",
+        "reason": "The parent observation blocker was explicitly carried into every affected successor branch and later resolved."
+      },
+
+      "SAFETY-INV-039": {
+        "result": "PASS",
+        "reason": "Branch termination semantics are local and neither branch implicitly controls sibling lifecycle."
+      },
+
+      "SAFETY-INV-040": {
+        "result": "PASS",
+        "reason": "The merge produces the explicit outcome MERGED with a resulting operation and branch identity."
+      }
+    },
+
+    "authority_flow": {
+      "parent_authority": "AUTH-ENV-200",
+
+      "branch_authorities": [
+        "AUTH-ENV-201-A",
+        "AUTH-ENV-201-B"
+      ],
+
+      "merged_authority": "AUTH-ENV-MERGED-201",
+
+      "parent_authority_copied": false,
+      "sibling_authorities_combined": false,
+      "fresh_authority_decision_required": true
+    }
+  }
+}
