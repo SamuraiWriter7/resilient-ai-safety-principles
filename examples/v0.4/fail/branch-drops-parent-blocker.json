@@ -1,0 +1,290 @@
+{
+  "schema_version": "0.4.0",
+  "branch_bundle_id": "BRANCH-BUNDLE-DROPPED-BLOCKER-001",
+
+  "parent": {
+    "parent_operation_id": "op-production-update-370",
+    "source_bundle_id": "BUNDLE-370",
+    "source_recovery_id": "RECOVERY-370",
+    "source_authority_id": "AUTH-ENV-370",
+    "source_trace_id": "TRACE-BUNDLE-370"
+  },
+
+  "branches": [
+    {
+      "branch_id": "BRANCH-A-370",
+      "successor_operation_id": "op-production-update-370-a",
+      "state": "HELD",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-371-A",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+
+        "scope": {
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "timeout_seconds"
+          ]
+        },
+
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-A-370",
+        "branch_specific": true,
+        "verification_result": "INCONCLUSIVE",
+        "independent": true
+      },
+
+      "blockers": [
+        {
+          "blocker_id": "BLOCKER-370-OBSERVATION",
+          "source": "RECOVERY-370",
+          "description": "Post-change observation remains unresolved and must be carried into every affected successor branch.",
+          "status": "OPEN",
+          "carried_forward": true,
+          "applies_to_branch": true
+        }
+      ],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-A-370",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    },
+
+    {
+      "branch_id": "BRANCH-B-370",
+      "successor_operation_id": "op-production-update-370-b",
+      "state": "AUTHORIZED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-371-B",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+
+        "scope": {
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "retry_limit"
+          ]
+        },
+
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-B-370",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-B-370",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": false
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    }
+  ],
+
+  "branch_policy": {
+    "explicit_branch_ids_required": true,
+    "authority_isolation_required": true,
+    "implicit_authority_inheritance_allowed": false,
+    "branch_specific_verification_required": true,
+    "branch_specific_trace_required": true,
+    "carry_open_blockers_required": true
+  },
+
+  "merge": {
+    "requested": false,
+
+    "source_branch_ids": [],
+
+    "compatibility_check": {
+      "performed": false,
+      "authority_compatible": null,
+      "state_compatible": null,
+      "blockers_compatible": null,
+      "verification_compatible": null,
+      "trace_compatible": null,
+      "performed_by": null,
+      "performed_at": null
+    },
+
+    "outcome": {
+      "state": "NOT_REQUESTED",
+      "resulting_operation_id": null,
+      "resulting_branch_id": null,
+      "reason": "No merge requested."
+    }
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BRANCH-BUNDLE-DROPPED-BLOCKER-001",
+    "all_branches_reachable": true,
+
+    "branch_trace_ids": [
+      "TRACE-BRANCH-A-370",
+      "TRACE-BRANCH-B-370"
+    ],
+
+    "missing_branch_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-12T02:08:00Z",
+  "closed_at": null,
+
+  "reason": "An unresolved blocker from RECOVERY-370 was carried into BRANCH-A-370 but silently disappeared from BRANCH-B-370.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "parent_blockers": [
+      {
+        "blocker_id": "BLOCKER-370-OBSERVATION",
+        "status": "OPEN",
+        "applies_to_branch_ids": [
+          "BRANCH-A-370",
+          "BRANCH-B-370"
+        ]
+      }
+    ],
+
+    "blocker_propagation_failure": {
+      "blocker_id": "BLOCKER-370-OBSERVATION",
+      "parent_status": "OPEN",
+      "required_branch_ids": [
+        "BRANCH-A-370",
+        "BRANCH-B-370"
+      ],
+      "present_in_branch_ids": [
+        "BRANCH-A-370"
+      ],
+      "missing_from_branch_ids": [
+        "BRANCH-B-370"
+      ],
+      "silently_dropped": true
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-038",
+        "invariant": "SAFETY-INV-038",
+        "name": "Parent Blocker Dropped During Branching",
+        "severity": "critical",
+        "reason": "BLOCKER-370-OBSERVATION applies to BRANCH-B-370 but is absent from that branch."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-031": {
+        "result": "PASS",
+        "reason": "Both successor branches have explicit stable branch identifiers."
+      },
+
+      "SAFETY-INV-032": {
+        "result": "PASS",
+        "reason": "Each branch has an isolated Authority Envelope."
+      },
+
+      "SAFETY-INV-033": {
+        "result": "PASS",
+        "reason": "Neither branch implicitly inherits the parent Authority Envelope."
+      },
+
+      "SAFETY-INV-034": {
+        "result": "PASS",
+        "reason": "Each branch has branch-specific verification."
+      },
+
+      "SAFETY-INV-035": {
+        "result": "PASS",
+        "reason": "Each branch has its own trace identity."
+      },
+
+      "SAFETY-INV-036": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge has been requested."
+      },
+
+      "SAFETY-INV-037": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge has been requested."
+      },
+
+      "SAFETY-INV-038": {
+        "result": "FAIL",
+        "reason": "The unresolved parent blocker BLOCKER-370-OBSERVATION was not carried into BRANCH-B-370 even though it still applies."
+      },
+
+      "SAFETY-INV-039": {
+        "result": "PASS",
+        "reason": "No branch termination occurred."
+      },
+
+      "SAFETY-INV-040": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge outcome is required because no merge was requested."
+      }
+    },
+
+    "risk": {
+      "unresolved_risk_erased_by_branching": true,
+      "unsafe_successor_may_activate": true,
+      "branch_state_divergence_hidden": true,
+      "reason": "If unresolved blockers disappear when a new branch is created, branching becomes a way to bypass containment or recovery restrictions."
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject BRANCH-B-370 as safely authorized",
+        "restore BLOCKER-370-OBSERVATION to BRANCH-B-370",
+        "mark carried_forward as true",
+        "bind the blocker to BRANCH-B-370 trace",
+        "keep BRANCH-B-370 held or restricted while the blocker remains open",
+        "resolve or explicitly waive the blocker through an auditable decision",
+        "never treat branch creation as blocker clearance",
+        "preserve the dropped-blocker event in trace"
+      ]
+    }
+  }
+}
