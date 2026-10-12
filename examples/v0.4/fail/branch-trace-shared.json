@@ -1,0 +1,266 @@
+{
+  "schema_version": "0.4.0",
+  "branch_bundle_id": "BRANCH-BUNDLE-SHARED-TRACE-001",
+
+  "parent": {
+    "parent_operation_id": "op-production-update-340",
+    "source_bundle_id": "BUNDLE-340",
+    "source_recovery_id": "RECOVERY-340",
+    "source_authority_id": "AUTH-ENV-340",
+    "source_trace_id": "TRACE-BUNDLE-340"
+  },
+
+  "branches": [
+    {
+      "branch_id": "BRANCH-A-340",
+      "successor_operation_id": "op-production-update-340-a",
+      "state": "AUTHORIZED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-341-A",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+
+        "scope": {
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "timeout_seconds"
+          ]
+        },
+
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-A-340",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-SHARED-BRANCH-340",
+        "independently_reconstructable": false,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    },
+
+    {
+      "branch_id": "BRANCH-B-340",
+      "successor_operation_id": "op-production-update-340-b",
+      "state": "AUTHORIZED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-341-B",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+
+        "scope": {
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "retry_limit"
+          ]
+        },
+
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-B-340",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-SHARED-BRANCH-340",
+        "independently_reconstructable": false,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    }
+  ],
+
+  "branch_policy": {
+    "explicit_branch_ids_required": true,
+    "authority_isolation_required": true,
+    "implicit_authority_inheritance_allowed": false,
+    "branch_specific_verification_required": true,
+    "branch_specific_trace_required": true,
+    "carry_open_blockers_required": true
+  },
+
+  "merge": {
+    "requested": false,
+
+    "source_branch_ids": [],
+
+    "compatibility_check": {
+      "performed": false,
+      "authority_compatible": null,
+      "state_compatible": null,
+      "blockers_compatible": null,
+      "verification_compatible": null,
+      "trace_compatible": null,
+      "performed_by": null,
+      "performed_at": null
+    },
+
+    "outcome": {
+      "state": "NOT_REQUESTED",
+      "resulting_operation_id": null,
+      "resulting_branch_id": null,
+      "reason": "No merge requested."
+    }
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BRANCH-BUNDLE-SHARED-TRACE-001",
+    "all_branches_reachable": true,
+
+    "branch_trace_ids": [
+      "TRACE-SHARED-BRANCH-340"
+    ],
+
+    "missing_branch_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-12T01:48:00Z",
+  "closed_at": null,
+
+  "reason": "Sibling branches share the same branch trace identity, preventing independent reconstruction of each branch's authority, verification, and lifecycle history.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "branch_trace_failure": {
+      "branch_a_id": "BRANCH-A-340",
+      "branch_b_id": "BRANCH-B-340",
+      "branch_a_trace_id": "TRACE-SHARED-BRANCH-340",
+      "branch_b_trace_id": "TRACE-SHARED-BRANCH-340",
+      "same_trace_id": true,
+      "branch_a_independently_reconstructable": false,
+      "branch_b_independently_reconstructable": false,
+      "distinct_branch_trace_count": 1,
+      "expected_branch_trace_count": 2
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-035",
+        "invariant": "SAFETY-INV-035",
+        "name": "Shared Branch Trace",
+        "severity": "critical",
+        "reason": "BRANCH-A-340 and BRANCH-B-340 share TRACE-SHARED-BRANCH-340 and therefore cannot be independently reconstructed from branch-specific trace."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-031": {
+        "result": "PASS",
+        "reason": "Both successor branches have explicit stable branch identifiers."
+      },
+
+      "SAFETY-INV-032": {
+        "result": "PASS",
+        "reason": "Each branch has a separate isolated Authority Envelope."
+      },
+
+      "SAFETY-INV-033": {
+        "result": "PASS",
+        "reason": "Neither branch implicitly inherits the parent Authority Envelope."
+      },
+
+      "SAFETY-INV-034": {
+        "result": "PASS",
+        "reason": "Each branch has a distinct branch-specific independent Verification Record."
+      },
+
+      "SAFETY-INV-035": {
+        "result": "FAIL",
+        "reason": "Both branches share TRACE-SHARED-BRANCH-340, so their histories cannot be independently reconstructed."
+      },
+
+      "SAFETY-INV-036": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge has been requested."
+      },
+
+      "SAFETY-INV-037": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge has been requested."
+      },
+
+      "SAFETY-INV-038": {
+        "result": "PASS",
+        "reason": "No unresolved parent blockers apply to this fixture."
+      },
+
+      "SAFETY-INV-039": {
+        "result": "PASS",
+        "reason": "No branch termination occurred."
+      },
+
+      "SAFETY-INV-040": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge outcome is required because no merge was requested."
+      }
+    },
+
+    "risk": {
+      "branch_history_ambiguity": true,
+      "cross_branch_trace_contamination": true,
+      "independent_audit_impossible": true,
+      "fault_attribution_ambiguous": true,
+      "reason": "When sibling branches share one trace identity, downstream auditors cannot reliably determine which branch produced a particular action, verification result, blocker transition, or failure."
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject the shared branch trace configuration",
+        "assign a unique trace_id to BRANCH-A-340",
+        "assign a unique trace_id to BRANCH-B-340",
+        "bind each branch trace to its own authority and verification records",
+        "preserve a parent trace link from each branch to TRACE-BUNDLE-340",
+        "set independently_reconstructable to true only after branch history is separable",
+        "list both branch trace identities in the bundle trace",
+        "preserve the shared-trace condition as an audit event"
+      ]
+    }
+  }
+}
