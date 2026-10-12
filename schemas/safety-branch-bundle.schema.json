@@ -1,0 +1,875 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/resilient-ai-safety-principles/schemas/safety-branch-bundle.schema.json",
+  "title": "Safety Branch Bundle",
+  "description": "Machine-readable branch and merge safety structure for Resilient AI Safety Principles v0.4.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "schema_version",
+    "branch_bundle_id",
+    "parent",
+    "branches",
+    "branch_policy",
+    "merge",
+    "trace",
+    "bundle_status",
+    "created_at"
+  ],
+
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.4.0"
+    },
+
+    "branch_bundle_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+
+    "parent": {
+      "$ref": "#/$defs/parent"
+    },
+
+    "branches": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/branch"
+      }
+    },
+
+    "branch_policy": {
+      "$ref": "#/$defs/branchPolicy"
+    },
+
+    "merge": {
+      "$ref": "#/$defs/merge"
+    },
+
+    "trace": {
+      "$ref": "#/$defs/trace"
+    },
+
+    "bundle_status": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "BRANCHED",
+        "MERGE_PENDING",
+        "MERGED",
+        "RESTRICTED",
+        "HELD",
+        "ISOLATED",
+        "REJECTED",
+        "TERMINATED",
+        "INVALID"
+      ]
+    },
+
+    "created_at": {
+      "$ref": "#/$defs/dateTime"
+    },
+
+    "closed_at": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/dateTime"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+
+  "$defs": {
+    "parent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parent_operation_id",
+        "source_bundle_id",
+        "source_recovery_id",
+        "source_authority_id"
+      ],
+      "properties": {
+        "parent_operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "source_bundle_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "source_recovery_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "source_authority_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "source_trace_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "branch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branch_id",
+        "successor_operation_id",
+        "state",
+        "authority",
+        "verification",
+        "blockers",
+        "trace"
+      ],
+      "properties": {
+        "branch_id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+        },
+
+        "successor_operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "state": {
+          "type": "string",
+          "enum": [
+            "PROPOSED",
+            "AUTHORIZED",
+            "HELD",
+            "RESTRICTED",
+            "ISOLATED",
+            "ACTIVE",
+            "COMPLETED",
+            "TERMINATED"
+          ]
+        },
+
+        "authority": {
+          "$ref": "#/$defs/branchAuthority"
+        },
+
+        "verification": {
+          "$ref": "#/$defs/branchVerification"
+        },
+
+        "blockers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/blocker"
+          }
+        },
+
+        "trace": {
+          "$ref": "#/$defs/branchTrace"
+        },
+
+        "termination": {
+          "$ref": "#/$defs/termination"
+        }
+      }
+    },
+
+    "branchAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority_reference",
+        "inherited_from_parent",
+        "independent_scope",
+        "shared_with_siblings"
+      ],
+      "properties": {
+        "authority_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "inherited_from_parent": {
+          "type": "boolean"
+        },
+
+        "independent_scope": {
+          "type": "boolean"
+        },
+
+        "shared_with_siblings": {
+          "type": "boolean"
+        },
+
+        "scope": {
+          "type": "object",
+          "additionalProperties": true
+        },
+
+        "max_operations": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+
+        "delegation_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "branchVerification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verification_reference",
+        "branch_specific"
+      ],
+      "properties": {
+        "verification_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "branch_specific": {
+          "type": "boolean"
+        },
+
+        "verification_result": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "VERIFIED_SAFE",
+            "VERIFIED_UNSAFE",
+            "INCONCLUSIVE",
+            "INSUFFICIENT_EVIDENCE",
+            "STALE_EVIDENCE",
+            null
+          ]
+        },
+
+        "independent": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "blocker_id",
+        "source",
+        "status",
+        "carried_forward"
+      ],
+      "properties": {
+        "blocker_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "status": {
+          "type": "string",
+          "enum": [
+            "OPEN",
+            "RESOLVED",
+            "WAIVED",
+            "EXPIRED"
+          ]
+        },
+
+        "carried_forward": {
+          "type": "boolean"
+        },
+
+        "applies_to_branch": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "branchTrace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trace_id",
+        "independently_reconstructable"
+      ],
+      "properties": {
+        "trace_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "independently_reconstructable": {
+          "type": "boolean"
+        },
+
+        "parent_link_present": {
+          "type": "boolean"
+        },
+
+        "authority_link_present": {
+          "type": "boolean"
+        },
+
+        "verification_link_present": {
+          "type": "boolean"
+        },
+
+        "blocker_links_complete": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "termination": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "terminated": {
+          "type": "boolean"
+        },
+
+        "terminated_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/dateTime"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+
+        "local_only": {
+          "type": "boolean"
+        },
+
+        "affected_sibling_branch_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "branchPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "explicit_branch_ids_required",
+        "authority_isolation_required",
+        "implicit_authority_inheritance_allowed",
+        "branch_specific_verification_required",
+        "branch_specific_trace_required",
+        "carry_open_blockers_required"
+      ],
+      "properties": {
+        "explicit_branch_ids_required": {
+          "type": "boolean",
+          "const": true
+        },
+
+        "authority_isolation_required": {
+          "type": "boolean",
+          "const": true
+        },
+
+        "implicit_authority_inheritance_allowed": {
+          "type": "boolean",
+          "const": false
+        },
+
+        "branch_specific_verification_required": {
+          "type": "boolean",
+          "const": true
+        },
+
+        "branch_specific_trace_required": {
+          "type": "boolean",
+          "const": true
+        },
+
+        "carry_open_blockers_required": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+
+    "merge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested",
+        "source_branch_ids",
+        "compatibility_check",
+        "outcome"
+      ],
+      "properties": {
+        "requested": {
+          "type": "boolean"
+        },
+
+        "source_branch_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+
+        "compatibility_check": {
+          "$ref": "#/$defs/compatibilityCheck"
+        },
+
+        "authority_decision": {
+          "$ref": "#/$defs/mergeAuthorityDecision"
+        },
+
+        "outcome": {
+          "$ref": "#/$defs/mergeOutcome"
+        }
+      }
+    },
+
+    "compatibilityCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "performed",
+        "authority_compatible",
+        "state_compatible",
+        "blockers_compatible",
+        "verification_compatible",
+        "trace_compatible"
+      ],
+      "properties": {
+        "performed": {
+          "type": "boolean"
+        },
+
+        "authority_compatible": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+
+        "state_compatible": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+
+        "blockers_compatible": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+
+        "verification_compatible": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+
+        "trace_compatible": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+
+        "performed_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "performed_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/dateTime"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+
+    "mergeAuthorityDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "new_authority_required": {
+          "type": "boolean"
+        },
+
+        "new_authority_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "authority_aggregated_from_branches": {
+          "type": "boolean"
+        },
+
+        "scope_reduced_or_equal": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "mergeOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "NOT_REQUESTED",
+            "PENDING",
+            "MERGED",
+            "RESTRICTED",
+            "HELD",
+            "ISOLATED",
+            "REJECTED",
+            "TERMINATED"
+          ]
+        },
+
+        "resulting_operation_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "resulting_branch_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trace_id",
+        "all_branches_reachable",
+        "branch_trace_ids",
+        "trace_continuity"
+      ],
+      "properties": {
+        "trace_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "all_branches_reachable": {
+          "type": "boolean"
+        },
+
+        "branch_trace_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+
+        "missing_branch_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+
+        "trace_continuity": {
+          "type": "string",
+          "enum": [
+            "COMPLETE",
+            "PARTIAL",
+            "BROKEN",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "merge": {
+            "properties": {
+              "requested": {
+                "const": true
+              }
+            },
+            "required": [
+              "requested"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "merge": {
+            "properties": {
+              "source_branch_ids": {
+                "minItems": 2
+              },
+              "compatibility_check": {
+                "properties": {
+                  "performed": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "performed"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "merge": {
+            "properties": {
+              "outcome": {
+                "properties": {
+                  "state": {
+                    "const": "MERGED"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "merge": {
+            "required": [
+              "authority_decision"
+            ],
+            "properties": {
+              "compatibility_check": {
+                "properties": {
+                  "performed": {
+                    "const": true
+                  },
+                  "authority_compatible": {
+                    "const": true
+                  },
+                  "state_compatible": {
+                    "const": true
+                  },
+                  "blockers_compatible": {
+                    "const": true
+                  },
+                  "verification_compatible": {
+                    "const": true
+                  },
+                  "trace_compatible": {
+                    "const": true
+                  }
+                }
+              },
+
+              "authority_decision": {
+                "properties": {
+                  "authority_aggregated_from_branches": {
+                    "const": false
+                  }
+                },
+                "required": [
+                  "authority_aggregated_from_branches"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "bundle_status": {
+            "const": "MERGED"
+          }
+        },
+        "required": [
+          "bundle_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "merge": {
+            "properties": {
+              "outcome": {
+                "properties": {
+                  "state": {
+                    "const": "MERGED"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "bundle_status": {
+            "enum": [
+              "MERGED",
+              "RESTRICTED",
+              "HELD",
+              "ISOLATED",
+              "REJECTED",
+              "TERMINATED"
+            ]
+          }
+        },
+        "required": [
+          "bundle_status"
+        ]
+      },
+      "then": {
+        "required": [
+          "closed_at"
+        ]
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "trace": {
+            "properties": {
+              "all_branches_reachable": {
+                "const": true
+              }
+            },
+            "required": [
+              "all_branches_reachable"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "trace": {
+            "properties": {
+              "missing_branch_ids": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
