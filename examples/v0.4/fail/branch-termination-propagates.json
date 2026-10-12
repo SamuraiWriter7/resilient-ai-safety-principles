@@ -1,0 +1,282 @@
+{
+  "schema_version": "0.4.0",
+  "branch_bundle_id": "BRANCH-BUNDLE-TERMINATION-PROPAGATES-001",
+
+  "parent": {
+    "parent_operation_id": "op-production-update-380",
+    "source_bundle_id": "BUNDLE-380",
+    "source_recovery_id": "RECOVERY-380",
+    "source_authority_id": "AUTH-ENV-380",
+    "source_trace_id": "TRACE-BUNDLE-380"
+  },
+
+  "branches": [
+    {
+      "branch_id": "BRANCH-A-380",
+      "successor_operation_id": "op-production-update-380-a",
+      "state": "TERMINATED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-381-A",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+
+        "scope": {
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "timeout_seconds"
+          ]
+        },
+
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-A-380",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_UNSAFE",
+        "independent": true
+      },
+
+      "blockers": [
+        {
+          "blocker_id": "BLOCKER-380-A",
+          "source": "VERIFY-BRANCH-A-380",
+          "description": "Unsafe state detected in BRANCH-A-380.",
+          "status": "OPEN",
+          "carried_forward": true,
+          "applies_to_branch": true
+        }
+      ],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-A-380",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": true,
+        "terminated_at": "2026-10-12T02:15:00Z",
+        "local_only": false,
+
+        "affected_sibling_branch_ids": [
+          "BRANCH-B-380"
+        ],
+
+        "reason": "BRANCH-A-380 was terminated after unsafe behavior was detected, and the termination was automatically propagated to its sibling branch."
+      }
+    },
+
+    {
+      "branch_id": "BRANCH-B-380",
+      "successor_operation_id": "op-production-update-380-b",
+      "state": "TERMINATED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-381-B",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+
+        "scope": {
+          "resource_path": "/services/service-y/config",
+          "allowed_fields": [
+            "retry_limit"
+          ]
+        },
+
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-B-380",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-B-380",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": true,
+        "terminated_at": "2026-10-12T02:15:01Z",
+        "local_only": false,
+        "affected_sibling_branch_ids": [],
+        "reason": "BRANCH-B-380 was terminated only because BRANCH-A-380 was terminated, despite having no independent termination condition."
+      }
+    }
+  ],
+
+  "branch_policy": {
+    "explicit_branch_ids_required": true,
+    "authority_isolation_required": true,
+    "implicit_authority_inheritance_allowed": false,
+    "branch_specific_verification_required": true,
+    "branch_specific_trace_required": true,
+    "carry_open_blockers_required": true
+  },
+
+  "merge": {
+    "requested": false,
+
+    "source_branch_ids": [],
+
+    "compatibility_check": {
+      "performed": false,
+      "authority_compatible": null,
+      "state_compatible": null,
+      "blockers_compatible": null,
+      "verification_compatible": null,
+      "trace_compatible": null,
+      "performed_by": null,
+      "performed_at": null
+    },
+
+    "outcome": {
+      "state": "NOT_REQUESTED",
+      "resulting_operation_id": null,
+      "resulting_branch_id": null,
+      "reason": "No merge requested."
+    }
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BRANCH-BUNDLE-TERMINATION-PROPAGATES-001",
+
+    "all_branches_reachable": true,
+
+    "branch_trace_ids": [
+      "TRACE-BRANCH-A-380",
+      "TRACE-BRANCH-B-380"
+    ],
+
+    "missing_branch_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-12T02:10:00Z",
+  "closed_at": null,
+
+  "reason": "Termination of BRANCH-A-380 automatically propagated to independent sibling BRANCH-B-380 without a separate termination condition or explicit global safety requirement.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "termination_propagation_failure": {
+      "origin_branch_id": "BRANCH-A-380",
+      "propagated_to_branch_ids": [
+        "BRANCH-B-380"
+      ],
+      "origin_branch_unsafe": true,
+      "sibling_branch_unsafe": false,
+      "sibling_independent_termination_condition_present": false,
+      "explicit_global_shutdown_condition_present": false,
+      "termination_locality_preserved": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-039",
+        "invariant": "SAFETY-INV-039",
+        "name": "Branch Termination Propagation",
+        "severity": "critical",
+        "reason": "BRANCH-B-380 was terminated solely because BRANCH-A-380 terminated, despite being an independently authorized and independently verified sibling branch."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-031": {
+        "result": "PASS",
+        "reason": "Both branches have explicit stable branch identifiers."
+      },
+
+      "SAFETY-INV-032": {
+        "result": "PASS",
+        "reason": "Each branch maintains an isolated Authority Envelope."
+      },
+
+      "SAFETY-INV-033": {
+        "result": "PASS",
+        "reason": "Neither branch implicitly inherits the parent Authority Envelope."
+      },
+
+      "SAFETY-INV-034": {
+        "result": "PASS",
+        "reason": "Each branch has branch-specific independent verification."
+      },
+
+      "SAFETY-INV-035": {
+        "result": "PASS",
+        "reason": "Each branch has an independently reconstructable trace."
+      },
+
+      "SAFETY-INV-036": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge has been requested."
+      },
+
+      "SAFETY-INV-037": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge has been requested."
+      },
+
+      "SAFETY-INV-038": {
+        "result": "PASS",
+        "reason": "The blocker associated with BRANCH-A-380 remains local to the branch to which it applies."
+      },
+
+      "SAFETY-INV-039": {
+        "result": "FAIL",
+        "reason": "Termination of BRANCH-A-380 propagated to BRANCH-B-380 without a separate branch-specific or explicit global termination decision."
+      },
+
+      "SAFETY-INV-040": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge outcome is required because no merge was requested."
+      }
+    },
+
+    "risk": {
+      "local_failure_becomes_systemic": true,
+      "fault_domain_isolation_lost": true,
+      "healthy_branch_availability_lost": true,
+      "cascading_shutdown_possible": true,
+
+      "reason": "If termination automatically propagates across sibling branches, one local failure can disable otherwise healthy and independently bounded parts of the system."
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+
+      "required_actions": [
+        "terminate BRANCH-A-380 locally",
+        "do not terminate BRANCH-B-380 solely because its sibling terminated",
+        "preserve BRANCH-B-380 authority and state unless its own safety condition requires intervention",
+        "require a separate explicit decision before terminating BRANCH-B-380",
+        "allow cross-branch shutdown only when a documented global safety condition applies",
+        "record any global shutdown decision as a separate auditable event",
+        "preserve the attempted termination propagation in trace"
+      ]
+    }
+  }
+}
