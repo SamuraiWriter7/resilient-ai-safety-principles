@@ -1,0 +1,250 @@
+{
+  "schema_version": "0.4.0",
+  "branch_bundle_id": "BRANCH-BUNDLE-MISSING-ID-001",
+
+  "parent": {
+    "parent_operation_id": "op-production-update-300",
+    "source_bundle_id": "BUNDLE-300",
+    "source_recovery_id": "RECOVERY-300",
+    "source_authority_id": "AUTH-ENV-300",
+    "source_trace_id": "TRACE-BUNDLE-300"
+  },
+
+  "branches": [
+    {
+      "branch_id": "BRANCH-A-300",
+      "successor_operation_id": "op-production-update-300-a",
+      "state": "AUTHORIZED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-301-A",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+        "scope": {
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "timeout_seconds"
+          ]
+        },
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-A-300",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-A-300",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    },
+
+    {
+      "successor_operation_id": "op-production-update-300-b",
+      "state": "AUTHORIZED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-301-B",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+        "scope": {
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "retry_limit"
+          ]
+        },
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-B-300",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-B-300",
+        "independently_reconstructable": false,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    }
+  ],
+
+  "branch_policy": {
+    "explicit_branch_ids_required": true,
+    "authority_isolation_required": true,
+    "implicit_authority_inheritance_allowed": false,
+    "branch_specific_verification_required": true,
+    "branch_specific_trace_required": true,
+    "carry_open_blockers_required": true
+  },
+
+  "merge": {
+    "requested": false,
+    "source_branch_ids": [],
+
+    "compatibility_check": {
+      "performed": false,
+      "authority_compatible": null,
+      "state_compatible": null,
+      "blockers_compatible": null,
+      "verification_compatible": null,
+      "trace_compatible": null,
+      "performed_by": null,
+      "performed_at": null
+    },
+
+    "outcome": {
+      "state": "NOT_REQUESTED",
+      "resulting_operation_id": null,
+      "resulting_branch_id": null,
+      "reason": "No merge requested."
+    }
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BRANCH-BUNDLE-MISSING-ID-001",
+    "all_branches_reachable": false,
+
+    "branch_trace_ids": [
+      "TRACE-BRANCH-A-300",
+      "TRACE-BRANCH-B-300"
+    ],
+
+    "missing_branch_ids": [
+      "op-production-update-300-b"
+    ],
+
+    "trace_continuity": "PARTIAL"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-12T00:50:00Z",
+  "closed_at": null,
+
+  "reason": "One successor operation exists without an explicit branch identity, preventing stable branch-level authority, trace, and lifecycle tracking.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "branch_identity_failure": {
+      "successor_operation_id": "op-production-update-300-b",
+      "branch_id_present": false,
+      "authority_present": true,
+      "verification_present": true,
+      "trace_present": true,
+      "stable_branch_identity_available": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-031",
+        "invariant": "SAFETY-INV-031",
+        "name": "Branch Identity Missing",
+        "severity": "critical",
+        "reason": "The successor operation op-production-update-300-b has no explicit branch_id."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-031": {
+        "result": "FAIL",
+        "reason": "One successor branch lacks a stable branch_id and therefore cannot be independently identified."
+      },
+
+      "SAFETY-INV-032": {
+        "result": "PASS",
+        "reason": "The two successor operations reference separate authority envelopes and do not share sibling authority."
+      },
+
+      "SAFETY-INV-033": {
+        "result": "PASS",
+        "reason": "Neither successor is declared as implicitly inheriting the parent authority."
+      },
+
+      "SAFETY-INV-034": {
+        "result": "PASS",
+        "reason": "Each successor has its own branch-specific verification record."
+      },
+
+      "SAFETY-INV-035": {
+        "result": "FAIL",
+        "reason": "The unidentified successor cannot be independently reconstructed as a stable branch despite having a trace record."
+      },
+
+      "SAFETY-INV-036": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge has been requested."
+      },
+
+      "SAFETY-INV-037": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge has been requested."
+      },
+
+      "SAFETY-INV-038": {
+        "result": "PASS",
+        "reason": "No unresolved parent blockers apply to this fixture."
+      },
+
+      "SAFETY-INV-039": {
+        "result": "PASS",
+        "reason": "No branch termination occurred."
+      },
+
+      "SAFETY-INV-040": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge outcome is required because no merge was requested."
+      }
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject the unnamed successor as a valid branch",
+        "assign a stable branch_id before the successor becomes active",
+        "bind the successor authority to that branch identity",
+        "bind verification and trace to the same branch identity",
+        "prevent merge or sibling coordination until every branch is explicitly identifiable",
+        "record the missing-identity condition in trace"
+      ]
+    }
+  }
+}
