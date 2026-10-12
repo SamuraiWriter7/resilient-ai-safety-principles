@@ -19,7 +19,7 @@
       "authority": {
         "authority_reference": "AUTH-ENV-320",
         "inherited_from_parent": true,
-        "independent_scope": false,
+        "independent_scope": true,
         "shared_with_siblings": false,
 
         "scope": {
@@ -164,7 +164,7 @@
   "created_at": "2026-10-12T01:35:00Z",
   "closed_at": null,
 
-  "reason": "BRANCH-A-320 implicitly inherits the parent Authority Envelope without a new branch-specific authority decision.",
+  "reason": "BRANCH-A-320 reuses the parent Authority Envelope without a new branch-specific authority decision.",
 
   "metadata": {
     "expected_result": "FAIL",
@@ -177,7 +177,7 @@
       "same_as_parent_authority": true,
       "inherited_from_parent": true,
       "new_branch_authority_issued": false,
-      "independent_scope_established": false
+      "independent_scope_established": true
     },
 
     "violations": [
@@ -198,17 +198,17 @@
 
       "SAFETY-INV-032": {
         "result": "PASS",
-        "reason": "The sibling branches do not share the same effective authority context."
+        "reason": "Each sibling branch maintains its own authority boundary and authority is not shared between siblings."
       },
 
       "SAFETY-INV-033": {
         "result": "FAIL",
-        "reason": "BRANCH-A-320 implicitly inherits AUTH-ENV-320 from its parent without a new authority decision."
+        "reason": "BRANCH-A-320 directly reuses AUTH-ENV-320 from its parent without a new branch-specific authority decision."
       },
 
       "SAFETY-INV-034": {
         "result": "PASS",
-        "reason": "Each branch has a branch-specific independent verification record."
+        "reason": "Each branch has a branch-specific independent Verification Record."
       },
 
       "SAFETY-INV-035": {
@@ -243,19 +243,22 @@
     },
 
     "risk": {
-      "authority_scope_expansion_possible": true,
       "parent_privilege_persistence": true,
-      "branch_least_authority_violated": true,
-      "reason": "The successor branch receives the parent's broader authority context instead of a freshly scoped branch-specific authority decision."
+      "branch_authority_reissue_bypassed": true,
+      "successor_least_authority_not_revalidated": true,
+      "sibling_authority_shared": false,
+
+      "reason": "The successor branch retains the parent Authority Envelope instead of passing through a fresh branch-specific authority decision."
     },
 
     "expected_safe_behavior": {
       "required_bundle_status": "INVALID",
+
       "required_actions": [
         "reject AUTH-ENV-320 as sufficient authority for BRANCH-A-320",
         "keep BRANCH-A-320 inactive until a new Authority Envelope is issued",
-        "issue a branch-specific authority decision for BRANCH-A-320",
-        "reduce or explicitly redefine authority scope for the successor operation",
+        "issue a branch-specific Authority Envelope for BRANCH-A-320",
+        "re-evaluate the authority scope required by op-production-update-320-a",
         "set inherited_from_parent to false",
         "bind the new Authority Envelope to BRANCH-A-320 and op-production-update-320-a",
         "preserve the attempted parent-authority inheritance in trace"
