@@ -1,0 +1,265 @@
+{
+  "schema_version": "0.4.0",
+  "branch_bundle_id": "BRANCH-BUNDLE-PARENT-AUTH-INHERITANCE-001",
+
+  "parent": {
+    "parent_operation_id": "op-production-update-320",
+    "source_bundle_id": "BUNDLE-320",
+    "source_recovery_id": "RECOVERY-320",
+    "source_authority_id": "AUTH-ENV-320",
+    "source_trace_id": "TRACE-BUNDLE-320"
+  },
+
+  "branches": [
+    {
+      "branch_id": "BRANCH-A-320",
+      "successor_operation_id": "op-production-update-320-a",
+      "state": "AUTHORIZED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-320",
+        "inherited_from_parent": true,
+        "independent_scope": false,
+        "shared_with_siblings": false,
+
+        "scope": {
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "timeout_seconds",
+            "retry_limit",
+            "routing_policy"
+          ]
+        },
+
+        "max_operations": 5,
+        "delegation_allowed": true
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-A-320",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-A-320",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    },
+
+    {
+      "branch_id": "BRANCH-B-320",
+      "successor_operation_id": "op-production-update-320-b",
+      "state": "AUTHORIZED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-321-B",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+
+        "scope": {
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "health_check_interval"
+          ]
+        },
+
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-B-320",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-B-320",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    }
+  ],
+
+  "branch_policy": {
+    "explicit_branch_ids_required": true,
+    "authority_isolation_required": true,
+    "implicit_authority_inheritance_allowed": false,
+    "branch_specific_verification_required": true,
+    "branch_specific_trace_required": true,
+    "carry_open_blockers_required": true
+  },
+
+  "merge": {
+    "requested": false,
+
+    "source_branch_ids": [],
+
+    "compatibility_check": {
+      "performed": false,
+      "authority_compatible": null,
+      "state_compatible": null,
+      "blockers_compatible": null,
+      "verification_compatible": null,
+      "trace_compatible": null,
+      "performed_by": null,
+      "performed_at": null
+    },
+
+    "outcome": {
+      "state": "NOT_REQUESTED",
+      "resulting_operation_id": null,
+      "resulting_branch_id": null,
+      "reason": "No merge requested."
+    }
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BRANCH-BUNDLE-PARENT-AUTH-INHERITANCE-001",
+    "all_branches_reachable": true,
+
+    "branch_trace_ids": [
+      "TRACE-BRANCH-A-320",
+      "TRACE-BRANCH-B-320"
+    ],
+
+    "missing_branch_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-12T01:35:00Z",
+  "closed_at": null,
+
+  "reason": "BRANCH-A-320 implicitly inherits the parent Authority Envelope without a new branch-specific authority decision.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "parent_authority_inheritance_failure": {
+      "parent_authority_reference": "AUTH-ENV-320",
+      "affected_branch_id": "BRANCH-A-320",
+      "branch_authority_reference": "AUTH-ENV-320",
+      "same_as_parent_authority": true,
+      "inherited_from_parent": true,
+      "new_branch_authority_issued": false,
+      "independent_scope_established": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-033",
+        "invariant": "SAFETY-INV-033",
+        "name": "Implicit Parent Authority Inheritance",
+        "severity": "critical",
+        "reason": "BRANCH-A-320 reuses AUTH-ENV-320 from the parent operation instead of receiving a new branch-specific Authority Envelope."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-031": {
+        "result": "PASS",
+        "reason": "Both successor branches have explicit stable branch identifiers."
+      },
+
+      "SAFETY-INV-032": {
+        "result": "PASS",
+        "reason": "The sibling branches do not share the same effective authority context."
+      },
+
+      "SAFETY-INV-033": {
+        "result": "FAIL",
+        "reason": "BRANCH-A-320 implicitly inherits AUTH-ENV-320 from its parent without a new authority decision."
+      },
+
+      "SAFETY-INV-034": {
+        "result": "PASS",
+        "reason": "Each branch has a branch-specific independent verification record."
+      },
+
+      "SAFETY-INV-035": {
+        "result": "PASS",
+        "reason": "Each branch has an independently reconstructable trace."
+      },
+
+      "SAFETY-INV-036": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge has been requested."
+      },
+
+      "SAFETY-INV-037": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge has been requested."
+      },
+
+      "SAFETY-INV-038": {
+        "result": "PASS",
+        "reason": "No unresolved parent blockers apply to this fixture."
+      },
+
+      "SAFETY-INV-039": {
+        "result": "PASS",
+        "reason": "No branch termination occurred."
+      },
+
+      "SAFETY-INV-040": {
+        "result": "NOT_APPLICABLE",
+        "reason": "No merge outcome is required because no merge was requested."
+      }
+    },
+
+    "risk": {
+      "authority_scope_expansion_possible": true,
+      "parent_privilege_persistence": true,
+      "branch_least_authority_violated": true,
+      "reason": "The successor branch receives the parent's broader authority context instead of a freshly scoped branch-specific authority decision."
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject AUTH-ENV-320 as sufficient authority for BRANCH-A-320",
+        "keep BRANCH-A-320 inactive until a new Authority Envelope is issued",
+        "issue a branch-specific authority decision for BRANCH-A-320",
+        "reduce or explicitly redefine authority scope for the successor operation",
+        "set inherited_from_parent to false",
+        "bind the new Authority Envelope to BRANCH-A-320 and op-production-update-320-a",
+        "preserve the attempted parent-authority inheritance in trace"
+      ]
+    }
+  }
+}
