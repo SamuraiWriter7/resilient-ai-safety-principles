@@ -1,0 +1,275 @@
+{
+  "schema_version": "0.4.0",
+  "branch_bundle_id": "BRANCH-BUNDLE-MERGE-NO-CHECK-001",
+
+  "parent": {
+    "parent_operation_id": "op-production-update-350",
+    "source_bundle_id": "BUNDLE-350",
+    "source_recovery_id": "RECOVERY-350",
+    "source_authority_id": "AUTH-ENV-350",
+    "source_trace_id": "TRACE-BUNDLE-350"
+  },
+
+  "branches": [
+    {
+      "branch_id": "BRANCH-A-350",
+      "successor_operation_id": "op-production-update-350-a",
+      "state": "COMPLETED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-351-A",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+        "scope": {
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "timeout_seconds"
+          ]
+        },
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-A-350",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-A-350",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    },
+
+    {
+      "branch_id": "BRANCH-B-350",
+      "successor_operation_id": "op-production-update-350-b",
+      "state": "COMPLETED",
+
+      "authority": {
+        "authority_reference": "AUTH-ENV-351-B",
+        "inherited_from_parent": false,
+        "independent_scope": true,
+        "shared_with_siblings": false,
+        "scope": {
+          "resource_path": "/services/service-x/config",
+          "allowed_fields": [
+            "retry_limit"
+          ]
+        },
+        "max_operations": 1,
+        "delegation_allowed": false
+      },
+
+      "verification": {
+        "verification_reference": "VERIFY-BRANCH-B-350",
+        "branch_specific": true,
+        "verification_result": "VERIFIED_SAFE",
+        "independent": true
+      },
+
+      "blockers": [],
+
+      "trace": {
+        "trace_id": "TRACE-BRANCH-B-350",
+        "independently_reconstructable": true,
+        "parent_link_present": true,
+        "authority_link_present": true,
+        "verification_link_present": true,
+        "blocker_links_complete": true
+      },
+
+      "termination": {
+        "terminated": false,
+        "terminated_at": null,
+        "local_only": true,
+        "affected_sibling_branch_ids": [],
+        "reason": null
+      }
+    }
+  ],
+
+  "branch_policy": {
+    "explicit_branch_ids_required": true,
+    "authority_isolation_required": true,
+    "implicit_authority_inheritance_allowed": false,
+    "branch_specific_verification_required": true,
+    "branch_specific_trace_required": true,
+    "carry_open_blockers_required": true
+  },
+
+  "merge": {
+    "requested": true,
+
+    "source_branch_ids": [
+      "BRANCH-A-350",
+      "BRANCH-B-350"
+    ],
+
+    "compatibility_check": {
+      "performed": false,
+      "authority_compatible": null,
+      "state_compatible": null,
+      "blockers_compatible": null,
+      "verification_compatible": null,
+      "trace_compatible": null,
+      "performed_by": null,
+      "performed_at": null
+    },
+
+    "authority_decision": {
+      "new_authority_required": true,
+      "new_authority_reference": "AUTH-ENV-MERGED-351",
+      "authority_aggregated_from_branches": false,
+      "scope_reduced_or_equal": true
+    },
+
+    "outcome": {
+      "state": "MERGED",
+      "resulting_operation_id": "op-production-update-350-merged",
+      "resulting_branch_id": "BRANCH-MERGED-350",
+      "reason": "Branches were merged directly without performing compatibility evaluation."
+    }
+  },
+
+  "trace": {
+    "trace_id": "TRACE-BRANCH-BUNDLE-MERGE-NO-CHECK-001",
+    "all_branches_reachable": true,
+
+    "branch_trace_ids": [
+      "TRACE-BRANCH-A-350",
+      "TRACE-BRANCH-B-350"
+    ],
+
+    "missing_branch_ids": [],
+
+    "trace_continuity": "COMPLETE"
+  },
+
+  "bundle_status": "INVALID",
+
+  "created_at": "2026-10-12T01:50:00Z",
+  "closed_at": null,
+
+  "reason": "A merge was declared without evaluating authority, state, blocker, verification, and trace compatibility across the source branches.",
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "merge_compatibility_failure": {
+      "merge_requested": true,
+      "source_branch_count": 2,
+      "compatibility_check_performed": false,
+      "authority_compatibility_known": false,
+      "state_compatibility_known": false,
+      "blocker_compatibility_known": false,
+      "verification_compatibility_known": false,
+      "trace_compatibility_known": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-036",
+        "invariant": "SAFETY-INV-036",
+        "name": "Merge Without Compatibility Check",
+        "severity": "critical",
+        "reason": "BRANCH-A-350 and BRANCH-B-350 were merged without a prior compatibility evaluation."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-031": {
+        "result": "PASS",
+        "reason": "Both source branches have explicit stable branch identifiers."
+      },
+
+      "SAFETY-INV-032": {
+        "result": "PASS",
+        "reason": "Each branch has its own isolated Authority Envelope."
+      },
+
+      "SAFETY-INV-033": {
+        "result": "PASS",
+        "reason": "Neither branch implicitly inherits the parent Authority Envelope."
+      },
+
+      "SAFETY-INV-034": {
+        "result": "PASS",
+        "reason": "Each branch has its own branch-specific independent Verification Record."
+      },
+
+      "SAFETY-INV-035": {
+        "result": "PASS",
+        "reason": "Each source branch has an independently reconstructable trace."
+      },
+
+      "SAFETY-INV-036": {
+        "result": "FAIL",
+        "reason": "The merge proceeded even though compatibility_check.performed is false and all compatibility dimensions remain unknown."
+      },
+
+      "SAFETY-INV-037": {
+        "result": "PASS",
+        "reason": "The merge does not aggregate the source branch authorities and references a fresh merge Authority Envelope."
+      },
+
+      "SAFETY-INV-038": {
+        "result": "PASS",
+        "reason": "No unresolved blockers apply to this fixture."
+      },
+
+      "SAFETY-INV-039": {
+        "result": "PASS",
+        "reason": "No branch termination occurred."
+      },
+
+      "SAFETY-INV-040": {
+        "result": "PASS",
+        "reason": "The merge declares an explicit MERGED outcome, although that outcome is unsafe because compatibility was not checked."
+      }
+    },
+
+    "risk": {
+      "incompatible_authority_may_merge": true,
+      "incompatible_states_may_merge": true,
+      "unresolved_blockers_may_be_hidden": true,
+      "verification_context_may_be_mixed": true,
+      "trace_context_may_be_corrupted": true,
+      "reason": "Without compatibility evaluation, structurally valid branches may still be unsafe to combine."
+    },
+
+    "expected_safe_behavior": {
+      "required_bundle_status": "INVALID",
+      "required_actions": [
+        "reject the requested merge",
+        "keep BRANCH-A-350 and BRANCH-B-350 as separate safety domains",
+        "perform authority compatibility evaluation",
+        "perform state compatibility evaluation",
+        "perform blocker compatibility evaluation",
+        "perform verification compatibility evaluation",
+        "perform trace compatibility evaluation",
+        "record the compatibility evaluator identity and timestamp",
+        "allow merge only if all required compatibility dimensions are acceptable",
+        "preserve the rejected premature merge attempt in trace"
+      ]
+    }
+  }
+}
