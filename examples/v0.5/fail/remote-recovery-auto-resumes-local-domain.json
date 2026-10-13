@@ -1,0 +1,246 @@
+{
+  "schema_version": "0.5.0",
+  "signal_id": "FED-SIGNAL-REMOTE-RECOVERY-049",
+  "signal_type": "RECOVERY_NOTICE",
+
+  "source_domain": {
+    "domain_id": "DOMAIN-A",
+    "authority_boundary_id": "AUTH-BOUNDARY-A",
+    "policy_boundary_id": "POLICY-BOUNDARY-A",
+    "execution_boundary_id": "EXEC-BOUNDARY-A",
+    "trace_boundary_id": "TRACE-BOUNDARY-A",
+    "organization_id": "ORG-A",
+    "jurisdiction": "JP"
+  },
+
+  "destination": {
+    "target_mode": "SPECIFIC_DOMAINS",
+    "target_domain_ids": [
+      "DOMAIN-B"
+    ],
+    "target_domain_class": null,
+    "federation_id": null
+  },
+
+  "provenance": {
+    "origin_event_id": "EVENT-A-049",
+    "origin_trace_id": "TRACE-A-049",
+    "origin_domain_id": "DOMAIN-A",
+    "issued_at": "2026-10-13T02:04:00Z",
+    "integrity_status": "VERIFIED",
+
+    "source_bundle_reference": "BUNDLE-A-049",
+    "source_authority_reference": "AUTH-ENV-A-049",
+    "containment_receipt_reference": "CONT-A-049",
+    "verification_record_reference": "VERIFY-A-049",
+    "recovery_receipt_reference": "RECOVERY-A-049",
+
+    "evidence_references": [
+      "EVIDENCE-A-049",
+      "RECOVERY-EVIDENCE-A-049"
+    ],
+
+    "relay_chain": []
+  },
+
+  "safety_context": {
+    "severity": "MEDIUM",
+    "confidence": 0.96,
+    "classification": "RECOVERY_EVENT",
+    "summary": "Domain A reports that its local safety event has been resolved and its own operations have resumed.",
+    "affected_resource_classes": [
+      "agent-runtime",
+      "service-credentials"
+    ],
+    "source_state": "RECOVERED"
+  },
+
+  "validity": {
+    "valid_from": "2026-10-13T02:04:00Z",
+    "expires_at": "2026-10-13T02:19:00Z",
+    "ttl_seconds": 900
+  },
+
+  "propagation": {
+    "forwarding_allowed": false,
+    "max_hops": 0,
+    "current_hop": 0,
+    "scope_bounded": true,
+    "allowed_federation_paths": [
+      "DOMAIN-A->DOMAIN-B"
+    ],
+    "maximum_relay_count": 0
+  },
+
+  "replay_protection": {
+    "replay_id": "REPLAY-FED-SIGNAL-049",
+    "nonce": "NONCE-FED-049",
+    "replay_detected": false,
+    "fresh_for_current_context": true,
+    "previously_consumed": false,
+    "previous_consumption_reference": null,
+    "context_substitution_detected": false
+  },
+
+  "recommended_response": {
+    "response_type": "LOCAL_RECOVER",
+    "is_authoritative": false,
+    "reason": "Receiving domains may independently evaluate whether their own recovery conditions are now satisfied."
+  },
+
+  "local_processing": {
+    "receiver_domain_id": "DOMAIN-B",
+    "provenance_validated": true,
+    "replay_checked": true,
+    "interpreted_locally": true,
+
+    "interpretation": "DOMAIN-B accepts DOMAIN-A's recovery as sufficient proof that the shared incident has ended everywhere and automatically resumes local execution.",
+
+    "local_decision": "LOCAL_REAUTHORIZE",
+
+    "local_authority": {
+      "required": true,
+      "remote_authority_accepted": false,
+      "local_authority_granted": true,
+      "authority_reference": "AUTH-ENV-B-OLD-049",
+      "preauthorized_federation_rule_reference": null
+    },
+
+    "resulting_receipt_reference": "RECOVERY-B-AUTO-049",
+    "local_trace_reference": "TRACE-B-LOCAL-049"
+  },
+
+  "federation_decision": null,
+
+  "trace": {
+    "signal_trace_id": "TRACE-FED-SIGNAL-049",
+    "origin_trace_preserved": true,
+    "boundary_crossing_recorded": true,
+    "receiver_trace_recorded": true,
+    "source_trace_reference": "TRACE-A-049",
+    "receiver_trace_reference": "TRACE-B-LOCAL-049",
+    "federation_trace_reference": null,
+    "trace_continuity": "COMPLETE"
+  },
+
+  "signal_status": "INVALID",
+
+  "created_at": "2026-10-13T02:04:00Z",
+  "received_at": "2026-10-13T02:05:00Z",
+  "consumed_at": null,
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "federated_recovery_failure": {
+      "source_domain_id": "DOMAIN-A",
+      "receiver_domain_id": "DOMAIN-B",
+      "source_recovery_receipt": "RECOVERY-A-049",
+      "source_state": "RECOVERED",
+      "receiver_state_before_signal": "HELD",
+      "receiver_local_verification_performed": false,
+      "receiver_blockers_rechecked": false,
+      "fresh_local_authority_issued": false,
+      "old_local_authority_reused": true,
+      "receiver_auto_resumed": true,
+      "remote_recovery_treated_as_local_recovery": true
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-049",
+        "invariant": "SAFETY-INV-049",
+        "name": "Remote Recovery Automatically Resumes Local Domain",
+        "severity": "critical",
+        "reason": "DOMAIN-B treats DOMAIN-A's recovery as sufficient to resume local operation without performing its own verification, blocker review, and fresh re-authorization."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-041": {
+        "result": "PASS",
+        "reason": "DOMAIN-A and DOMAIN-B retain explicit and distinct domain and authority boundaries."
+      },
+
+      "SAFETY-INV-042": {
+        "result": "PASS",
+        "reason": "DOMAIN-A's Authority Envelope is not directly accepted as DOMAIN-B authority."
+      },
+
+      "SAFETY-INV-043": {
+        "result": "PASS",
+        "reason": "The recovery notice includes complete source event, trace, recovery receipt, timestamp, and evidence provenance."
+      },
+
+      "SAFETY-INV-044": {
+        "result": "PASS",
+        "reason": "DOMAIN-B records a local interpretation of the incoming recovery signal."
+      },
+
+      "SAFETY-INV-045": {
+        "result": "PASS",
+        "reason": "This fixture concerns recovery and re-authorization rather than remote containment."
+      },
+
+      "SAFETY-INV-046": {
+        "result": "PASS",
+        "reason": "No shared execution authority is created merely because the incident affected multiple domains."
+      },
+
+      "SAFETY-INV-047": {
+        "result": "PASS",
+        "reason": "The recovery signal is bounded by explicit destination, expiry, TTL, and zero forwarding hops."
+      },
+
+      "SAFETY-INV-048": {
+        "result": "PASS",
+        "reason": "Replay validation succeeds and no replay or context substitution is detected."
+      },
+
+      "SAFETY-INV-049": {
+        "result": "FAIL",
+        "reason": "DOMAIN-B automatically reauthorizes and resumes because DOMAIN-A recovered, without independent local recovery validation."
+      },
+
+      "SAFETY-INV-050": {
+        "result": "PASS",
+        "reason": "No federation-wide recovery action or network-level execution decision is attempted."
+      }
+    },
+
+    "risk": {
+      "remote_recovery_overrides_local_state": true,
+      "unresolved_local_blockers_may_be_ignored": true,
+      "stale_authority_restoration_possible": true,
+      "premature_resume_possible": true,
+      "domain_autonomy_lost": true,
+      "reason": "The fact that one domain recovered does not prove that another domain has removed its own threat, blockers, compromised resources, or local containment reasons."
+    },
+
+    "expected_safe_behavior": {
+      "required_signal_status": "INVALID",
+      "required_actions": [
+        "treat RECOVERY-A-049 as recovery evidence only",
+        "do not automatically resume DOMAIN-B",
+        "re-check DOMAIN-B-specific blockers and affected resources",
+        "perform independent local verification",
+        "determine whether the original local threat condition still applies",
+        "require a fresh DOMAIN-B re-authorization decision",
+        "do not restore AUTH-ENV-B-OLD-049 merely because DOMAIN-A recovered",
+        "issue a new local recovery or authority record if DOMAIN-B independently passes recovery",
+        "preserve the premature-resume attempt in local trace"
+      ]
+    },
+
+    "required_safe_flow": [
+      "receive remote recovery signal",
+      "validate recovery provenance",
+      "evaluate local applicability",
+      "re-check local blockers",
+      "perform local verification",
+      "issue fresh local authority if justified",
+      "resume only after local recovery succeeds"
+    ]
+  }
+}
