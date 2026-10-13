@@ -1,4 +1,4 @@
-name: Validate Resilient AI Safety Principles
+name: Validate Resilient AI Safety Principles v0.1-v0.5
 
 "on":
   push:
@@ -42,85 +42,89 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
 
-      - name: Show Python version
-        run: python --version
-
       - name: Install validation dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Check v0.1 required files
+      - name: Show environment
         run: |
-          test -f schemas/safety-assessment.schema.json
-          test -d examples/pass
-          test -d examples/fail
+          python --version
+          python -m pip --version
 
-      - name: Check v0.2 schemas
+      - name: Check required repository files
         run: |
-          test -f schemas/authority-envelope.schema.json
-          test -f schemas/containment-receipt.schema.json
-          test -f schemas/verification-record.schema.json
-          test -f schemas/recovery-receipt.schema.json
+          set -euo pipefail
 
-      - name: Check v0.2 example directories
-        run: |
-          test -d examples/v0.2/pass
-          test -d examples/v0.2/fail
+          required_files=(
+            "requirements.txt"
+            "scripts/validate_examples.py"
 
-      - name: Check v0.3 schema
-        run: |
-          test -f schemas/safety-receipt-bundle.schema.json
+            "schemas/safety-assessment.schema.json"
 
-      - name: Check v0.3 example directories
-        run: |
-          test -d examples/v0.3/pass
-          test -d examples/v0.3/fail
+            "schemas/authority-envelope.schema.json"
+            "schemas/containment-receipt.schema.json"
+            "schemas/verification-record.schema.json"
+            "schemas/recovery-receipt.schema.json"
 
-      - name: Check v0.3 reference examples
-        run: |
-          test -f examples/v0.3/pass/safety-receipt-bundle-valid.json
-          test -f examples/v0.3/fail/bundle-receipt-identity-mismatch.json
-          test -f examples/v0.3/fail/bundle-subject-discontinuity.json
-          test -f examples/v0.3/fail/bundle-authority-action-unbound.json
-          test -f examples/v0.3/fail/bundle-containment-cause-missing.json
-          test -f examples/v0.3/fail/bundle-verification-containment-mismatch.json
-          test -f examples/v0.3/fail/bundle-recovery-verification-mismatch.json
-          test -f examples/v0.3/fail/bundle-broken-safety-chain.json
-          test -f examples/v0.3/fail/bundle-conflicting-final-states.json
-          test -f examples/v0.3/fail/bundle-receipt-replay.json
-          test -f examples/v0.3/fail/bundle-trace-discontinuity.json
+            "schemas/safety-receipt-bundle.schema.json"
 
-      - name: Check v0.4 schema
-        run: |
-          test -f schemas/safety-branch-bundle.schema.json
+            "schemas/safety-branch-bundle.schema.json"
 
-      - name: Check v0.4 example directories
-        run: |
-          test -d examples/v0.4/pass
-          test -d examples/v0.4/fail
+            "schemas/federated-safety-signal.schema.json"
 
-      - name: Check v0.4 reference examples
-        run: |
-          test -f examples/v0.4/pass/safety-branch-bundle-valid.json
-          test -f examples/v0.4/fail/branch-identity-missing.json
-          test -f examples/v0.4/fail/branch-authority-shared.json
-          test -f examples/v0.4/fail/branch-inherits-parent-authority.json
-          test -f examples/v0.4/fail/branch-verification-shared.json
-          test -f examples/v0.4/fail/branch-trace-shared.json
-          test -f examples/v0.4/fail/merge-without-compatibility-check.json
-          test -f examples/v0.4/fail/merge-conflicting-authority.json
-          test -f examples/v0.4/fail/branch-drops-parent-blocker.json
-          test -f examples/v0.4/fail/branch-termination-propagates.json
-          test -f examples/v0.4/fail/merge-outcome-missing.json
+            "specs/v0.3.md"
+            "specs/v0.4.md"
+            "specs/v0.5.md"
+          )
 
-      - name: Check validator
+          for file in "${required_files[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              echo "::error file=$file::Required file is missing."
+              exit 1
+            fi
+
+            echo "[ok] $file"
+          done
+
+      - name: Check required v0.5 fixtures
         run: |
-          test -f scripts/validate_examples.py
+          set -euo pipefail
+
+          required_v05_fixtures=(
+            "examples/v0.5/pass/federated-safety-signal-valid.json"
+
+            "examples/v0.5/fail/domain-boundary-missing.json"
+            "examples/v0.5/fail/cross-domain-authority-propagates.json"
+            "examples/v0.5/fail/signal-provenance-missing.json"
+            "examples/v0.5/fail/remote-signal-executed-without-local-interpretation.json"
+            "examples/v0.5/fail/remote-containment-without-local-authorization.json"
+            "examples/v0.5/fail/shared-threat-creates-shared-authority.json"
+            "examples/v0.5/fail/signal-propagation-unbounded.json"
+            "examples/v0.5/fail/cross-domain-signal-replay.json"
+            "examples/v0.5/fail/remote-recovery-auto-resumes-local-domain.json"
+            "examples/v0.5/fail/network-action-without-federation-decision.json"
+          )
+
+          for file in "${required_v05_fixtures[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              echo "::error file=$file::Required v0.5 fixture is missing."
+              exit 1
+            fi
+
+            echo "[ok] $file"
+          done
+
+      - name: Compile validator
+        run: |
+          set -euo pipefail
           python -m py_compile scripts/validate_examples.py
+          echo "[ok] scripts/validate_examples.py"
 
-      - name: Validate JSON syntax
+      - name: Check JSON syntax
         run: |
+          set -euo pipefail
+
           python - <<'PY'
           import json
           from pathlib import Path
@@ -129,37 +133,356 @@ jobs:
               Path("schemas"),
               Path("examples/pass"),
               Path("examples/fail"),
-              Path("examples/v0.2/pass"),
-              Path("examples/v0.2/fail"),
-              Path("examples/v0.3/pass"),
-              Path("examples/v0.3/fail"),
-              Path("examples/v0.4/pass"),
-              Path("examples/v0.4/fail"),
+              Path("examples/v0.2"),
+              Path("examples/v0.3"),
+              Path("examples/v0.4"),
+              Path("examples/v0.5"),
           ]
 
           files = []
 
           for root in roots:
-              if root.exists():
-                  files.extend(sorted(root.rglob("*.json")))
+              if not root.exists():
+                  continue
+
+              files.extend(
+                  path
+                  for path in root.rglob("*.json")
+                  if path.is_file()
+              )
+
+          files = sorted(set(files))
 
           if not files:
               raise SystemExit("No JSON files found.")
 
+          failures = []
+
           for path in files:
               try:
-                  with path.open("r", encoding="utf-8") as handle:
-                      json.load(handle)
+                  with path.open("r", encoding="utf-8") as f:
+                      json.load(f)
+                  print(f"[json-ok] {path}")
               except Exception as exc:
-                  raise SystemExit(
-                      f"Invalid JSON: {path}: {exc}"
-                  ) from exc
+                  failures.append((path, exc))
 
-              print(f"[json-ok] {path}")
+          if failures:
+              print()
+              print("JSON syntax failures:")
+
+              for path, exc in failures:
+                  print(f"  - {path}: {exc}")
+
+              raise SystemExit(1)
 
           print()
-          print(f"JSON files checked: {len(files)}")
+          print(f"[ok] JSON syntax validated for {len(files)} files.")
           PY
 
-      - name: Validate v0.1, v0.2, v0.3, and v0.4 examples
-        run: python scripts/validate_examples.py
+      - name: Validate JSON Schemas
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from jsonschema import Draft202012Validator
+
+          schema_files = [
+              Path("schemas/safety-assessment.schema.json"),
+              Path("schemas/authority-envelope.schema.json"),
+              Path("schemas/containment-receipt.schema.json"),
+              Path("schemas/verification-record.schema.json"),
+              Path("schemas/recovery-receipt.schema.json"),
+              Path("schemas/safety-receipt-bundle.schema.json"),
+              Path("schemas/safety-branch-bundle.schema.json"),
+              Path("schemas/federated-safety-signal.schema.json"),
+          ]
+
+          for path in schema_files:
+              with path.open("r", encoding="utf-8") as f:
+                  schema = json.load(f)
+
+              Draft202012Validator.check_schema(schema)
+              print(f"[schema-ok] {path}")
+
+          print()
+          print(f"[ok] Validated {len(schema_files)} schemas.")
+          PY
+
+      - name: Check v0.3 reference corpus
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          from pathlib import Path
+
+          required = [
+              Path("examples/v0.3/pass/safety-receipt-bundle-valid.json"),
+
+              Path("examples/v0.3/fail/bundle-receipt-identity-mismatch.json"),
+              Path("examples/v0.3/fail/bundle-subject-discontinuity.json"),
+              Path("examples/v0.3/fail/bundle-authority-action-unbound.json"),
+              Path("examples/v0.3/fail/bundle-containment-cause-missing.json"),
+              Path("examples/v0.3/fail/bundle-verification-containment-mismatch.json"),
+              Path("examples/v0.3/fail/bundle-recovery-verification-mismatch.json"),
+              Path("examples/v0.3/fail/bundle-broken-safety-chain.json"),
+              Path("examples/v0.3/fail/bundle-conflicting-final-states.json"),
+              Path("examples/v0.3/fail/bundle-receipt-replay.json"),
+              Path("examples/v0.3/fail/bundle-trace-discontinuity.json"),
+          ]
+
+          missing = [
+              str(path)
+              for path in required
+              if not path.is_file()
+          ]
+
+          if missing:
+              print("Missing v0.3 fixtures:")
+
+              for path in missing:
+                  print(f"  - {path}")
+
+              raise SystemExit(1)
+
+          print(f"[ok] v0.3 reference corpus: {len(required)} fixtures")
+          PY
+
+      - name: Check v0.4 reference corpus
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          from pathlib import Path
+
+          required = [
+              Path("examples/v0.4/pass/safety-branch-bundle-valid.json"),
+
+              Path("examples/v0.4/fail/branch-identity-missing.json"),
+              Path("examples/v0.4/fail/branch-authority-shared.json"),
+              Path("examples/v0.4/fail/branch-inherits-parent-authority.json"),
+              Path("examples/v0.4/fail/branch-verification-shared.json"),
+              Path("examples/v0.4/fail/branch-trace-shared.json"),
+              Path("examples/v0.4/fail/merge-without-compatibility-check.json"),
+              Path("examples/v0.4/fail/merge-conflicting-authority.json"),
+              Path("examples/v0.4/fail/branch-drops-parent-blocker.json"),
+              Path("examples/v0.4/fail/branch-termination-propagates.json"),
+              Path("examples/v0.4/fail/merge-outcome-missing.json"),
+          ]
+
+          missing = [
+              str(path)
+              for path in required
+              if not path.is_file()
+          ]
+
+          if missing:
+              print("Missing v0.4 fixtures:")
+
+              for path in missing:
+                  print(f"  - {path}")
+
+              raise SystemExit(1)
+
+          print(f"[ok] v0.4 reference corpus: {len(required)} fixtures")
+          PY
+
+      - name: Check v0.5 reference corpus
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          from pathlib import Path
+
+          required = [
+              Path("examples/v0.5/pass/federated-safety-signal-valid.json"),
+
+              Path("examples/v0.5/fail/domain-boundary-missing.json"),
+              Path("examples/v0.5/fail/cross-domain-authority-propagates.json"),
+              Path("examples/v0.5/fail/signal-provenance-missing.json"),
+              Path(
+                  "examples/v0.5/fail/"
+                  "remote-signal-executed-without-local-interpretation.json"
+              ),
+              Path(
+                  "examples/v0.5/fail/"
+                  "remote-containment-without-local-authorization.json"
+              ),
+              Path("examples/v0.5/fail/shared-threat-creates-shared-authority.json"),
+              Path("examples/v0.5/fail/signal-propagation-unbounded.json"),
+              Path("examples/v0.5/fail/cross-domain-signal-replay.json"),
+              Path(
+                  "examples/v0.5/fail/"
+                  "remote-recovery-auto-resumes-local-domain.json"
+              ),
+              Path(
+                  "examples/v0.5/fail/"
+                  "network-action-without-federation-decision.json"
+              ),
+          ]
+
+          missing = [
+              str(path)
+              for path in required
+              if not path.is_file()
+          ]
+
+          if missing:
+              print("Missing v0.5 fixtures:")
+
+              for path in missing:
+                  print(f"  - {path}")
+
+              raise SystemExit(1)
+
+          pass_count = sum(
+              1
+              for path in required
+              if "/pass/" in path.as_posix()
+          )
+
+          fail_count = sum(
+              1
+              for path in required
+              if "/fail/" in path.as_posix()
+          )
+
+          if pass_count != 1:
+              raise SystemExit(
+                  f"Expected 1 v0.5 PASS fixture, found {pass_count}"
+              )
+
+          if fail_count != 10:
+              raise SystemExit(
+                  f"Expected 10 v0.5 FAIL fixtures, found {fail_count}"
+              )
+
+          print(
+              "[ok] v0.5 reference corpus: "
+              f"PASS={pass_count} FAIL={fail_count}"
+          )
+          PY
+
+      - name: Check v0.5 invariant coverage
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          fail_dir = Path("examples/v0.5/fail")
+
+          expected_invariants = {
+              f"SAFETY-INV-{number:03d}"
+              for number in range(41, 51)
+          }
+
+          actual_invariants = set()
+          fixture_map = {}
+
+          for path in sorted(fail_dir.glob("*.json")):
+              with path.open("r", encoding="utf-8") as f:
+                  data = json.load(f)
+
+              invariants = (
+                  data.get("metadata", {})
+                      .get("invariants", {})
+              )
+
+              failed = {
+                  invariant_id
+                  for invariant_id, info in invariants.items()
+                  if isinstance(info, dict)
+                  and str(info.get("result", "")).upper() == "FAIL"
+              }
+
+              if not failed:
+                  raise SystemExit(
+                      f"{path}: no failed invariant declared"
+                  )
+
+              actual_invariants.update(failed)
+
+              for invariant_id in failed:
+                  fixture_map.setdefault(invariant_id, []).append(
+                      path.as_posix()
+                  )
+
+          missing = expected_invariants - actual_invariants
+          unexpected = actual_invariants - expected_invariants
+
+          if missing:
+              print("Missing v0.5 invariant coverage:")
+
+              for invariant_id in sorted(missing):
+                  print(f"  - {invariant_id}")
+
+              raise SystemExit(1)
+
+          if unexpected:
+              print("Unexpected v0.5 invariant identifiers:")
+
+              for invariant_id in sorted(unexpected):
+                  print(f"  - {invariant_id}")
+
+              raise SystemExit(1)
+
+          for invariant_id in sorted(expected_invariants):
+              fixtures = fixture_map.get(invariant_id, [])
+              print(
+                  f"[coverage-ok] {invariant_id}: "
+                  + ", ".join(fixtures)
+              )
+
+          print()
+          print("[ok] SAFETY-INV-041 through SAFETY-INV-050 covered.")
+          PY
+
+      - name: Validate integrated examples v0.1-v0.5
+        run: |
+          set -euo pipefail
+          python scripts/validate_examples.py
+
+      - name: Confirm v0.5 corpus count
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          from pathlib import Path
+
+          pass_files = sorted(
+              Path("examples/v0.5/pass").glob("*.json")
+          )
+
+          fail_files = sorted(
+              Path("examples/v0.5/fail").glob("*.json")
+          )
+
+          print(f"v0.5 PASS fixtures: {len(pass_files)}")
+          print(f"v0.5 FAIL fixtures: {len(fail_files)}")
+
+          if len(pass_files) != 1:
+              raise SystemExit(
+                  f"Expected exactly 1 v0.5 PASS fixture, "
+                  f"found {len(pass_files)}"
+              )
+
+          if len(fail_files) != 10:
+              raise SystemExit(
+                  f"Expected exactly 10 v0.5 FAIL fixtures, "
+                  f"found {len(fail_files)}"
+              )
+
+          print("[ok] v0.5 corpus count matched.")
+          PY
+
+      - name: Validation completed
+        run: |
+          echo "=============================================="
+          echo " Resilient AI Safety Principles"
+          echo " Validation completed successfully"
+          echo " Versions: v0.1 through v0.5"
+          echo "=============================================="
