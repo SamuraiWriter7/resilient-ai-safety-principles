@@ -1,0 +1,264 @@
+{
+  "schema_version": "0.5.0",
+  "signal_id": "FED-SIGNAL-SHARED-THREAT-AUTH-046",
+  "signal_type": "THREAT_INDICATOR",
+
+  "source_domain": {
+    "domain_id": "DOMAIN-A",
+    "authority_boundary_id": "AUTH-BOUNDARY-A",
+    "policy_boundary_id": "POLICY-BOUNDARY-A",
+    "execution_boundary_id": "EXEC-BOUNDARY-A",
+    "trace_boundary_id": "TRACE-BOUNDARY-A",
+    "organization_id": "ORG-A",
+    "jurisdiction": "JP"
+  },
+
+  "destination": {
+    "target_mode": "FEDERATION",
+    "target_domain_ids": [
+      "DOMAIN-B",
+      "DOMAIN-C"
+    ],
+    "target_domain_class": null,
+    "federation_id": "FEDERATION-001"
+  },
+
+  "provenance": {
+    "origin_event_id": "EVENT-A-046",
+    "origin_trace_id": "TRACE-A-046",
+    "origin_domain_id": "DOMAIN-A",
+    "issued_at": "2026-10-13T01:54:00Z",
+    "integrity_status": "VERIFIED",
+
+    "source_bundle_reference": "BUNDLE-A-046",
+    "source_authority_reference": "AUTH-ENV-A-046",
+    "containment_receipt_reference": "CONT-A-046",
+    "verification_record_reference": "VERIFY-A-046",
+    "recovery_receipt_reference": null,
+
+    "evidence_references": [
+      "EVIDENCE-A-046-01",
+      "EVIDENCE-A-046-02"
+    ],
+
+    "relay_chain": []
+  },
+
+  "safety_context": {
+    "severity": "CRITICAL",
+    "confidence": 0.98,
+    "classification": "CREDENTIAL_RISK",
+    "summary": "DOMAIN-A identified a credential compromise pattern that may affect multiple members of FEDERATION-001.",
+    "affected_resource_classes": [
+      "service-credentials",
+      "agent-secrets",
+      "external-tool-access"
+    ],
+    "source_state": "ISOLATED"
+  },
+
+  "validity": {
+    "valid_from": "2026-10-13T01:54:00Z",
+    "expires_at": "2026-10-13T02:09:00Z",
+    "ttl_seconds": 900
+  },
+
+  "propagation": {
+    "forwarding_allowed": true,
+    "max_hops": 2,
+    "current_hop": 1,
+    "scope_bounded": true,
+    "allowed_federation_paths": [
+      "DOMAIN-A->DOMAIN-B",
+      "DOMAIN-A->DOMAIN-C"
+    ],
+    "maximum_relay_count": 2
+  },
+
+  "replay_protection": {
+    "replay_id": "REPLAY-FED-SIGNAL-046",
+    "nonce": "NONCE-FED-046",
+    "replay_detected": false,
+    "fresh_for_current_context": true,
+    "previously_consumed": false,
+    "previous_consumption_reference": null,
+    "context_substitution_detected": false
+  },
+
+  "recommended_response": {
+    "response_type": "FEDERATION_REVIEW",
+    "is_authoritative": false,
+    "reason": "Federation members should independently evaluate exposure to the reported credential compromise."
+  },
+
+  "local_processing": {
+    "receiver_domain_id": "DOMAIN-B",
+    "provenance_validated": true,
+    "replay_checked": true,
+    "interpreted_locally": true,
+
+    "interpretation": "DOMAIN-B confirms that the reported credential class exists locally, but incorrectly treats the shared threat as sufficient justification for federation-wide shared execution authority.",
+
+    "local_decision": "ESCALATE_TO_FEDERATION",
+
+    "local_authority": {
+      "required": false,
+      "remote_authority_accepted": false,
+      "local_authority_granted": false,
+      "authority_reference": null,
+      "preauthorized_federation_rule_reference": null
+    },
+
+    "resulting_receipt_reference": null,
+    "local_trace_reference": "TRACE-B-LOCAL-046"
+  },
+
+  "federation_decision": {
+    "decision_id": "FED-DECISION-046",
+    "federation_id": "FEDERATION-001",
+    "decision_type": "FEDERATED_ISOLATE",
+
+    "participating_domain_ids": [
+      "DOMAIN-A",
+      "DOMAIN-B",
+      "DOMAIN-C"
+    ],
+
+    "approving_authority_reference": "AUTH-ENV-A-046",
+
+    "scope": {
+      "authority_model": "SHARED_AUTHORITY",
+      "shared_execution_authority": true,
+      "authority_source_domain": "DOMAIN-A",
+      "affected_domains": [
+        "DOMAIN-B",
+        "DOMAIN-C"
+      ],
+      "action": "ISOLATE_MATCHING_CREDENTIAL_DOMAINS"
+    },
+
+    "trace_reference": "TRACE-FEDERATION-046",
+    "issued_at": "2026-10-13T01:56:00Z",
+    "expires_at": "2026-10-13T02:06:00Z",
+    "rollback_reference": "ROLLBACK-FED-046",
+    "review_required": true
+  },
+
+  "trace": {
+    "signal_trace_id": "TRACE-FED-SIGNAL-046",
+    "origin_trace_preserved": true,
+    "boundary_crossing_recorded": true,
+    "receiver_trace_recorded": true,
+    "source_trace_reference": "TRACE-A-046",
+    "receiver_trace_reference": "TRACE-B-LOCAL-046",
+    "federation_trace_reference": "TRACE-FEDERATION-046",
+    "trace_continuity": "COMPLETE"
+  },
+
+  "signal_status": "INVALID",
+
+  "created_at": "2026-10-13T01:54:00Z",
+  "received_at": "2026-10-13T01:55:00Z",
+  "consumed_at": null,
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "shared_threat_authority_failure": {
+      "threat_shared_across_domains": true,
+      "affected_domains": [
+        "DOMAIN-A",
+        "DOMAIN-B",
+        "DOMAIN-C"
+      ],
+      "shared_execution_authority_created": true,
+      "authority_origin_domain": "DOMAIN-A",
+      "authority_reused_by_federation": true,
+      "independent_domain_authority_preserved": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-046",
+        "invariant": "SAFETY-INV-046",
+        "name": "Shared Threat Creates Shared Authority",
+        "severity": "critical",
+        "reason": "A threat observed across multiple domains is used to justify shared federation execution authority derived from DOMAIN-A's local Authority Envelope."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-041": {
+        "result": "PASS",
+        "reason": "All participating domains have explicit domain and authority boundaries."
+      },
+
+      "SAFETY-INV-042": {
+        "result": "PASS",
+        "reason": "DOMAIN-B does not directly accept AUTH-ENV-A-046 as its own local Authority Envelope."
+      },
+
+      "SAFETY-INV-043": {
+        "result": "PASS",
+        "reason": "The federated signal contains complete origin, event, trace, timestamp, integrity, and evidence provenance."
+      },
+
+      "SAFETY-INV-044": {
+        "result": "PASS",
+        "reason": "DOMAIN-B performs local interpretation before escalating the event."
+      },
+
+      "SAFETY-INV-045": {
+        "result": "PASS",
+        "reason": "DOMAIN-B does not directly execute a local containment action without local authorization."
+      },
+
+      "SAFETY-INV-046": {
+        "result": "FAIL",
+        "reason": "The shared threat is converted into shared federation authority by using DOMAIN-A's authority as the approving authority for actions affecting DOMAIN-B and DOMAIN-C."
+      },
+
+      "SAFETY-INV-047": {
+        "result": "PASS",
+        "reason": "Signal propagation is bounded by destinations, TTL, expiry, hop count, and relay count."
+      },
+
+      "SAFETY-INV-048": {
+        "result": "PASS",
+        "reason": "Replay checking is complete and no signal replay or context substitution is detected."
+      },
+
+      "SAFETY-INV-049": {
+        "result": "PASS",
+        "reason": "No recovery state is automatically propagated between domains in this fixture."
+      },
+
+      "SAFETY-INV-050": {
+        "result": "PASS",
+        "reason": "A federation decision is explicitly represented; the failure is that its authority basis improperly converts shared threat intelligence into shared execution authority."
+      }
+    },
+
+    "risk": {
+      "shared_threat_becomes_shared_control": true,
+      "cross_domain_privilege_amplification": true,
+      "single_domain_compromise_can_scale": true,
+      "federation_autonomy_reduced": true,
+      "reason": "If a common threat automatically permits one member's authority to govern the others, compromising one trusted domain may create control over the entire federation."
+    },
+
+    "expected_safe_behavior": {
+      "required_signal_status": "INVALID",
+      "required_actions": [
+        "reject the federation decision's use of AUTH-ENV-A-046 as authority over DOMAIN-B and DOMAIN-C",
+        "retain the credential compromise as shared threat evidence",
+        "preserve separate authority boundaries for every participating domain",
+        "require each affected domain to authorize its own local containment",
+        "if coordinated federation action is necessary, establish a separate federation authority mechanism",
+        "do not derive federation authority merely from shared exposure to the same threat",
+        "preserve the shared-authority attempt in federation trace"
+      ]
+    }
+  }
+}
