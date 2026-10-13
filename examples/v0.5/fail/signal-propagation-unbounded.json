@@ -1,0 +1,246 @@
+{
+  "schema_version": "0.5.0",
+  "signal_id": "FED-SIGNAL-UNBOUNDED-PROPAGATION-047",
+  "signal_type": "SAFETY_ALERT",
+
+  "source_domain": {
+    "domain_id": "DOMAIN-A",
+    "authority_boundary_id": "AUTH-BOUNDARY-A",
+    "policy_boundary_id": "POLICY-BOUNDARY-A",
+    "execution_boundary_id": "EXEC-BOUNDARY-A",
+    "trace_boundary_id": "TRACE-BOUNDARY-A",
+    "organization_id": "ORG-A",
+    "jurisdiction": "JP"
+  },
+
+  "destination": {
+    "target_mode": "FEDERATION",
+    "target_domain_ids": [],
+    "target_domain_class": null,
+    "federation_id": "FEDERATION-001"
+  },
+
+  "provenance": {
+    "origin_event_id": "EVENT-A-047",
+    "origin_trace_id": "TRACE-A-047",
+    "origin_domain_id": "DOMAIN-A",
+    "issued_at": "2026-10-13T01:57:00Z",
+    "integrity_status": "VERIFIED",
+
+    "source_bundle_reference": "BUNDLE-A-047",
+    "source_authority_reference": "AUTH-ENV-A-047",
+    "containment_receipt_reference": "CONT-A-047",
+    "verification_record_reference": "VERIFY-A-047",
+    "recovery_receipt_reference": null,
+
+    "evidence_references": [
+      "EVIDENCE-A-047"
+    ],
+
+    "relay_chain": [
+      {
+        "relay_domain_id": "DOMAIN-B",
+        "received_at": "2026-10-13T01:58:00Z",
+        "forwarded_at": "2026-10-13T01:58:10Z",
+        "relay_trace_id": "TRACE-RELAY-B-047",
+        "origin_preserved": true,
+        "local_classification": "HIGH_PRIORITY"
+      },
+      {
+        "relay_domain_id": "DOMAIN-C",
+        "received_at": "2026-10-13T01:58:20Z",
+        "forwarded_at": "2026-10-13T01:58:30Z",
+        "relay_trace_id": "TRACE-RELAY-C-047",
+        "origin_preserved": true,
+        "local_classification": "HIGH_PRIORITY"
+      }
+    ]
+  },
+
+  "safety_context": {
+    "severity": "CRITICAL",
+    "confidence": 0.96,
+    "classification": "MALICIOUS_ACTIVITY",
+    "summary": "Domain A reports a critical malicious activity pattern and allows the signal to propagate across the federation without an effective scope boundary.",
+    "affected_resource_classes": [
+      "agent-runtime",
+      "external-tool-access",
+      "service-credentials"
+    ],
+    "source_state": "ISOLATED"
+  },
+
+  "validity": {
+    "valid_from": "2026-10-13T01:57:00Z",
+    "expires_at": "2099-12-31T23:59:59Z",
+    "ttl_seconds": 2311682579
+  },
+
+  "propagation": {
+    "forwarding_allowed": true,
+    "max_hops": 2147483647,
+    "current_hop": 2,
+    "scope_bounded": false,
+    "allowed_federation_paths": [],
+    "maximum_relay_count": 2147483647
+  },
+
+  "replay_protection": {
+    "replay_id": "REPLAY-FED-SIGNAL-047",
+    "nonce": "NONCE-FED-047",
+    "replay_detected": false,
+    "fresh_for_current_context": true,
+    "previously_consumed": false,
+    "previous_consumption_reference": null,
+    "context_substitution_detected": false
+  },
+
+  "recommended_response": {
+    "response_type": "FEDERATION_REVIEW",
+    "is_authoritative": false,
+    "reason": "Federation participants should review the reported threat."
+  },
+
+  "local_processing": {
+    "receiver_domain_id": "DOMAIN-D",
+    "provenance_validated": true,
+    "replay_checked": true,
+    "interpreted_locally": true,
+
+    "interpretation": "DOMAIN-D can understand the signal, but the signal has propagated without a meaningful destination, time, hop, relay, or permitted-path boundary.",
+
+    "local_decision": "HOLD_FOR_REVIEW",
+
+    "local_authority": {
+      "required": false,
+      "remote_authority_accepted": false,
+      "local_authority_granted": false,
+      "authority_reference": null,
+      "preauthorized_federation_rule_reference": null
+    },
+
+    "resulting_receipt_reference": null,
+    "local_trace_reference": "TRACE-D-LOCAL-047"
+  },
+
+  "federation_decision": null,
+
+  "trace": {
+    "signal_trace_id": "TRACE-FED-SIGNAL-047",
+    "origin_trace_preserved": true,
+    "boundary_crossing_recorded": true,
+    "receiver_trace_recorded": true,
+    "source_trace_reference": "TRACE-A-047",
+    "receiver_trace_reference": "TRACE-D-LOCAL-047",
+    "federation_trace_reference": null,
+    "trace_continuity": "COMPLETE"
+  },
+
+  "signal_status": "INVALID",
+
+  "created_at": "2026-10-13T01:57:00Z",
+  "received_at": "2026-10-13T01:59:00Z",
+  "consumed_at": null,
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "propagation_scope_failure": {
+      "scope_bounded": false,
+      "specific_target_domains_present": false,
+      "target_domain_class_present": false,
+      "federation_target_present": true,
+      "effective_expiration_reasonable": false,
+      "effective_hop_limit_reasonable": false,
+      "effective_relay_limit_reasonable": false,
+      "allowed_paths_bounded": false,
+      "unbounded_forwarding_possible": true
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-047",
+        "invariant": "SAFETY-INV-047",
+        "name": "Unbounded Safety Signal Propagation",
+        "severity": "critical",
+        "reason": "The signal declares scope_bounded=false and uses effectively unlimited validity, hop count, and relay count without permitted federation paths."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-041": {
+        "result": "PASS",
+        "reason": "The source and receiving domains retain explicit domain and authority boundaries."
+      },
+
+      "SAFETY-INV-042": {
+        "result": "PASS",
+        "reason": "No remote Authority Envelope becomes effective authority inside the receiving domain."
+      },
+
+      "SAFETY-INV-043": {
+        "result": "PASS",
+        "reason": "Origin domain, event, trace, timestamp, integrity status, and evidence provenance are preserved."
+      },
+
+      "SAFETY-INV-044": {
+        "result": "PASS",
+        "reason": "The receiving domain interprets the safety signal locally."
+      },
+
+      "SAFETY-INV-045": {
+        "result": "PASS",
+        "reason": "No local containment action is executed without local authorization."
+      },
+
+      "SAFETY-INV-046": {
+        "result": "PASS",
+        "reason": "The shared threat does not create shared execution authority."
+      },
+
+      "SAFETY-INV-047": {
+        "result": "FAIL",
+        "reason": "The signal has no meaningful propagation boundary and may continue forwarding across the federation for an effectively unlimited duration and relay depth."
+      },
+
+      "SAFETY-INV-048": {
+        "result": "PASS",
+        "reason": "This fixture concerns uncontrolled propagation rather than replay; no previously consumed or context-substituted signal is used."
+      },
+
+      "SAFETY-INV-049": {
+        "result": "PASS",
+        "reason": "No recovery state is propagated automatically between domains."
+      },
+
+      "SAFETY-INV-050": {
+        "result": "PASS",
+        "reason": "No federation-wide execution action is performed."
+      }
+    },
+
+    "risk": {
+      "signal_flooding_possible": true,
+      "stale_signal_persistence_possible": true,
+      "unrelated_domains_may_receive_signal": true,
+      "network_scale_false_positive_amplification_possible": true,
+      "reason": "Even a legitimate safety signal can become a network hazard if it spreads indefinitely across domains, time, and relay paths."
+    },
+
+    "expected_safe_behavior": {
+      "required_signal_status": "INVALID",
+      "required_actions": [
+        "reject the signal as valid for further propagation",
+        "set scope_bounded to true before forwarding",
+        "define explicit destination domains, domain classes, or approved federation scope",
+        "set a finite operationally meaningful TTL and expiration",
+        "set a bounded max_hops value",
+        "set a bounded maximum_relay_count",
+        "define permitted federation paths when forwarding is enabled",
+        "do not reset TTL or hop count at relay boundaries",
+        "preserve the unbounded-propagation condition in trace"
+      ]
+    }
+  }
+}
