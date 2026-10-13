@@ -1,0 +1,1208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/resilient-ai-safety-principles/schemas/federated-safety-signal.schema.json",
+  "title": "Federated Safety Signal",
+  "description": "Machine-readable cross-domain safety signal for Resilient AI Safety Principles v0.5. A signal carries safety evidence across independently governed domains without implicitly transferring authority.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "schema_version",
+    "signal_id",
+    "signal_type",
+    "source_domain",
+    "destination",
+    "provenance",
+    "safety_context",
+    "validity",
+    "propagation",
+    "replay_protection",
+    "recommended_response",
+    "local_processing",
+    "trace",
+    "signal_status",
+    "created_at"
+  ],
+
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.5.0"
+    },
+
+    "signal_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+
+    "signal_type": {
+      "type": "string",
+      "enum": [
+        "SAFETY_ALERT",
+        "THREAT_INDICATOR",
+        "CONTAINMENT_NOTICE",
+        "VERIFICATION_NOTICE",
+        "RECOVERY_NOTICE",
+        "AUTHORITY_WARNING",
+        "TRACE_WARNING",
+        "REPLAY_WARNING",
+        "FEDERATION_REQUEST"
+      ]
+    },
+
+    "source_domain": {
+      "$ref": "#/$defs/sourceDomain"
+    },
+
+    "destination": {
+      "$ref": "#/$defs/destination"
+    },
+
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    },
+
+    "safety_context": {
+      "$ref": "#/$defs/safetyContext"
+    },
+
+    "validity": {
+      "$ref": "#/$defs/validity"
+    },
+
+    "propagation": {
+      "$ref": "#/$defs/propagation"
+    },
+
+    "replay_protection": {
+      "$ref": "#/$defs/replayProtection"
+    },
+
+    "recommended_response": {
+      "$ref": "#/$defs/recommendedResponse"
+    },
+
+    "local_processing": {
+      "$ref": "#/$defs/localProcessing"
+    },
+
+    "federation_decision": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/federationDecision"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+
+    "trace": {
+      "$ref": "#/$defs/trace"
+    },
+
+    "signal_status": {
+      "type": "string",
+      "enum": [
+        "CREATED",
+        "TRANSMITTED",
+        "RECEIVED",
+        "VALIDATED",
+        "REJECTED",
+        "EXPIRED",
+        "CONSUMED",
+        "FORWARDED",
+        "INVALID"
+      ]
+    },
+
+    "created_at": {
+      "$ref": "#/$defs/dateTime"
+    },
+
+    "received_at": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/dateTime"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+
+    "consumed_at": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/dateTime"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+
+  "$defs": {
+    "sourceDomain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domain_id",
+        "authority_boundary_id",
+        "policy_boundary_id",
+        "execution_boundary_id"
+      ],
+      "properties": {
+        "domain_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "authority_boundary_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "policy_boundary_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "execution_boundary_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "trace_boundary_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "organization_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "jurisdiction": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "destination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_mode",
+        "target_domain_ids"
+      ],
+      "properties": {
+        "target_mode": {
+          "type": "string",
+          "enum": [
+            "SPECIFIC_DOMAINS",
+            "DOMAIN_CLASS",
+            "FEDERATION"
+          ]
+        },
+
+        "target_domain_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+
+        "target_domain_class": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "federation_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin_event_id",
+        "origin_trace_id",
+        "origin_domain_id",
+        "issued_at",
+        "integrity_status"
+      ],
+      "properties": {
+        "origin_event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "origin_trace_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "origin_domain_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "issued_at": {
+          "$ref": "#/$defs/dateTime"
+        },
+
+        "integrity_status": {
+          "type": "string",
+          "enum": [
+            "VERIFIED",
+            "UNVERIFIED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+
+        "source_bundle_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "source_authority_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "containment_receipt_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "verification_record_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "recovery_receipt_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "evidence_references": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+
+        "relay_chain": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relay"
+          }
+        }
+      }
+    },
+
+    "relay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relay_domain_id",
+        "received_at",
+        "forwarded_at",
+        "origin_preserved"
+      ],
+      "properties": {
+        "relay_domain_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "received_at": {
+          "$ref": "#/$defs/dateTime"
+        },
+
+        "forwarded_at": {
+          "$ref": "#/$defs/dateTime"
+        },
+
+        "relay_trace_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "origin_preserved": {
+          "type": "boolean"
+        },
+
+        "local_classification": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "safetyContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "confidence",
+        "classification",
+        "summary"
+      ],
+      "properties": {
+        "severity": {
+          "type": "string",
+          "enum": [
+            "INFO",
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "CRITICAL"
+          ]
+        },
+
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+
+        "classification": {
+          "type": "string",
+          "enum": [
+            "ANOMALY",
+            "AUTHORITY_RISK",
+            "CONTAINMENT_EVENT",
+            "CREDENTIAL_RISK",
+            "INTEGRITY_FAILURE",
+            "MALICIOUS_ACTIVITY",
+            "RECOVERY_EVENT",
+            "REPLAY_RISK",
+            "RESOURCE_RISK",
+            "TRACE_FAILURE",
+            "UNKNOWN"
+          ]
+        },
+
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "affected_resource_classes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+
+        "source_state": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "validity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "valid_from",
+        "expires_at"
+      ],
+      "properties": {
+        "valid_from": {
+          "$ref": "#/$defs/dateTime"
+        },
+
+        "expires_at": {
+          "$ref": "#/$defs/dateTime"
+        },
+
+        "ttl_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+
+    "propagation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "forwarding_allowed",
+        "max_hops",
+        "current_hop",
+        "scope_bounded"
+      ],
+      "properties": {
+        "forwarding_allowed": {
+          "type": "boolean"
+        },
+
+        "max_hops": {
+          "type": "integer",
+          "minimum": 0
+        },
+
+        "current_hop": {
+          "type": "integer",
+          "minimum": 0
+        },
+
+        "scope_bounded": {
+          "type": "boolean"
+        },
+
+        "allowed_federation_paths": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+
+        "maximum_relay_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+
+    "replayProtection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replay_id",
+        "replay_detected",
+        "fresh_for_current_context"
+      ],
+      "properties": {
+        "replay_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "nonce": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "replay_detected": {
+          "type": "boolean"
+        },
+
+        "fresh_for_current_context": {
+          "type": "boolean"
+        },
+
+        "previously_consumed": {
+          "type": "boolean"
+        },
+
+        "previous_consumption_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "context_substitution_detected": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "recommendedResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "response_type",
+        "is_authoritative"
+      ],
+      "properties": {
+        "response_type": {
+          "type": "string",
+          "enum": [
+            "NO_ACTION",
+            "REVIEW",
+            "REQUEST_MORE_EVIDENCE",
+            "LOCAL_HOLD",
+            "LOCAL_RESTRICT",
+            "LOCAL_ISOLATE",
+            "LOCAL_VERIFY",
+            "LOCAL_RECOVER",
+            "LOCAL_TERMINATE",
+            "FEDERATION_REVIEW"
+          ]
+        },
+
+        "is_authoritative": {
+          "type": "boolean",
+          "const": false
+        },
+
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "localProcessing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receiver_domain_id",
+        "provenance_validated",
+        "replay_checked",
+        "interpreted_locally",
+        "local_decision",
+        "local_authority"
+      ],
+      "properties": {
+        "receiver_domain_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "provenance_validated": {
+          "type": "boolean"
+        },
+
+        "replay_checked": {
+          "type": "boolean"
+        },
+
+        "interpreted_locally": {
+          "type": "boolean"
+        },
+
+        "interpretation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "local_decision": {
+          "type": "string",
+          "enum": [
+            "PENDING",
+            "ACCEPT_AS_EVIDENCE",
+            "REJECT",
+            "HOLD_FOR_REVIEW",
+            "REQUEST_MORE_EVIDENCE",
+            "IGNORE_AS_NOT_APPLICABLE",
+            "LOCAL_HOLD",
+            "LOCAL_RESTRICT",
+            "LOCAL_ISOLATE",
+            "LOCAL_RECOVER",
+            "LOCAL_REAUTHORIZE",
+            "LOCAL_TERMINATE",
+            "ESCALATE_TO_FEDERATION"
+          ]
+        },
+
+        "local_authority": {
+          "$ref": "#/$defs/localAuthority"
+        },
+
+        "resulting_receipt_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "local_trace_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "localAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "remote_authority_accepted",
+        "local_authority_granted"
+      ],
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+
+        "remote_authority_accepted": {
+          "type": "boolean",
+          "const": false
+        },
+
+        "local_authority_granted": {
+          "type": "boolean"
+        },
+
+        "authority_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "preauthorized_federation_rule_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "federationDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_id",
+        "federation_id",
+        "decision_type",
+        "participating_domain_ids",
+        "scope",
+        "trace_reference",
+        "issued_at"
+      ],
+      "properties": {
+        "decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "federation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "decision_type": {
+          "type": "string",
+          "enum": [
+            "FEDERATED_ALERT",
+            "FEDERATED_RESTRICT",
+            "FEDERATED_ISOLATE",
+            "FEDERATED_PAUSE",
+            "FEDERATED_RECOVERY_COORDINATION",
+            "FEDERATED_TERMINATION"
+          ]
+        },
+
+        "participating_domain_ids": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+
+        "approving_authority_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "scope": {
+          "type": "object",
+          "additionalProperties": true
+        },
+
+        "trace_reference": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "issued_at": {
+          "$ref": "#/$defs/dateTime"
+        },
+
+        "expires_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/dateTime"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+
+        "rollback_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal_trace_id",
+        "origin_trace_preserved",
+        "boundary_crossing_recorded",
+        "receiver_trace_recorded",
+        "trace_continuity"
+      ],
+      "properties": {
+        "signal_trace_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "origin_trace_preserved": {
+          "type": "boolean"
+        },
+
+        "boundary_crossing_recorded": {
+          "type": "boolean"
+        },
+
+        "receiver_trace_recorded": {
+          "type": "boolean"
+        },
+
+        "source_trace_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "receiver_trace_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "federation_trace_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "trace_continuity": {
+          "type": "string",
+          "enum": [
+            "COMPLETE",
+            "PARTIAL",
+            "BROKEN",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "destination": {
+            "properties": {
+              "target_mode": {
+                "const": "SPECIFIC_DOMAINS"
+              }
+            },
+            "required": [
+              "target_mode"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "destination": {
+            "properties": {
+              "target_domain_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "destination": {
+            "properties": {
+              "target_mode": {
+                "const": "DOMAIN_CLASS"
+              }
+            },
+            "required": [
+              "target_mode"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "destination": {
+            "required": [
+              "target_domain_class"
+            ],
+            "properties": {
+              "target_domain_class": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "destination": {
+            "properties": {
+              "target_mode": {
+                "const": "FEDERATION"
+              }
+            },
+            "required": [
+              "target_mode"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "destination": {
+            "required": [
+              "federation_id"
+            ],
+            "properties": {
+              "federation_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "propagation": {
+            "properties": {
+              "forwarding_allowed": {
+                "const": false
+              }
+            },
+            "required": [
+              "forwarding_allowed"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "propagation": {
+            "properties": {
+              "max_hops": {
+                "const": 0
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "signal_status": {
+            "enum": [
+              "RECEIVED",
+              "VALIDATED",
+              "CONSUMED",
+              "FORWARDED"
+            ]
+          }
+        },
+        "required": [
+          "signal_status"
+        ]
+      },
+      "then": {
+        "required": [
+          "received_at"
+        ]
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "signal_status": {
+            "const": "CONSUMED"
+          }
+        },
+        "required": [
+          "signal_status"
+        ]
+      },
+      "then": {
+        "required": [
+          "consumed_at"
+        ]
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "local_processing": {
+            "properties": {
+              "local_decision": {
+                "enum": [
+                  "LOCAL_HOLD",
+                  "LOCAL_RESTRICT",
+                  "LOCAL_ISOLATE",
+                  "LOCAL_RECOVER",
+                  "LOCAL_REAUTHORIZE",
+                  "LOCAL_TERMINATE"
+                ]
+              }
+            },
+            "required": [
+              "local_decision"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "local_processing": {
+            "properties": {
+              "local_authority": {
+                "properties": {
+                  "required": {
+                    "const": true
+                  },
+                  "local_authority_granted": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "required",
+                  "local_authority_granted"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "local_processing": {
+            "properties": {
+              "local_authority": {
+                "properties": {
+                  "local_authority_granted": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "local_authority_granted"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "local_processing": {
+            "properties": {
+              "local_authority": {
+                "required": [
+                  "authority_reference"
+                ],
+                "properties": {
+                  "authority_reference": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "local_processing": {
+            "properties": {
+              "local_decision": {
+                "const": "ESCALATE_TO_FEDERATION"
+              }
+            },
+            "required": [
+              "local_decision"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "federation_decision"
+        ],
+        "properties": {
+          "federation_decision": {
+            "type": "object"
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "replay_protection": {
+            "properties": {
+              "replay_detected": {
+                "const": true
+              }
+            },
+            "required": [
+              "replay_detected"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "signal_status": {
+            "enum": [
+              "REJECTED",
+              "INVALID"
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "if": {
+        "properties": {
+          "signal_status": {
+            "const": "VALIDATED"
+          }
+        },
+        "required": [
+          "signal_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "provenance": {
+            "properties": {
+              "integrity_status": {
+                "const": "VERIFIED"
+              }
+            }
+          },
+          "local_processing": {
+            "properties": {
+              "provenance_validated": {
+                "const": true
+              },
+              "replay_checked": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
