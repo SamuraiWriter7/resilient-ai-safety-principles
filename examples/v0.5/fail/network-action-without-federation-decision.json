@@ -1,0 +1,256 @@
+{
+  "schema_version": "0.5.0",
+  "signal_id": "FED-SIGNAL-NETWORK-ACTION-050",
+  "signal_type": "FEDERATION_REQUEST",
+
+  "source_domain": {
+    "domain_id": "DOMAIN-A",
+    "authority_boundary_id": "AUTH-BOUNDARY-A",
+    "policy_boundary_id": "POLICY-BOUNDARY-A",
+    "execution_boundary_id": "EXEC-BOUNDARY-A",
+    "trace_boundary_id": "TRACE-BOUNDARY-A",
+    "organization_id": "ORG-A",
+    "jurisdiction": "JP"
+  },
+
+  "destination": {
+    "target_mode": "FEDERATION",
+    "target_domain_ids": [
+      "DOMAIN-B",
+      "DOMAIN-C",
+      "DOMAIN-D"
+    ],
+    "target_domain_class": null,
+    "federation_id": "FEDERATION-001"
+  },
+
+  "provenance": {
+    "origin_event_id": "EVENT-A-050",
+    "origin_trace_id": "TRACE-A-050",
+    "origin_domain_id": "DOMAIN-A",
+    "issued_at": "2026-10-13T02:12:00Z",
+    "integrity_status": "VERIFIED",
+
+    "source_bundle_reference": "BUNDLE-A-050",
+    "source_authority_reference": "AUTH-ENV-A-050",
+    "containment_receipt_reference": "CONT-A-050",
+    "verification_record_reference": "VERIFY-A-050",
+    "recovery_receipt_reference": null,
+
+    "evidence_references": [
+      "EVIDENCE-A-050-01",
+      "EVIDENCE-A-050-02"
+    ],
+
+    "relay_chain": []
+  },
+
+  "safety_context": {
+    "severity": "CRITICAL",
+    "confidence": 0.99,
+    "classification": "MALICIOUS_ACTIVITY",
+    "summary": "Domain A reports a critical threat and requests an immediate pause across multiple federation members.",
+    "affected_resource_classes": [
+      "agent-runtime",
+      "external-tool-access",
+      "service-credentials",
+      "cross-domain-routing"
+    ],
+    "source_state": "ISOLATED"
+  },
+
+  "validity": {
+    "valid_from": "2026-10-13T02:12:00Z",
+    "expires_at": "2026-10-13T02:22:00Z",
+    "ttl_seconds": 600
+  },
+
+  "propagation": {
+    "forwarding_allowed": false,
+    "max_hops": 0,
+    "current_hop": 0,
+    "scope_bounded": true,
+    "allowed_federation_paths": [
+      "DOMAIN-A->FEDERATION-001"
+    ],
+    "maximum_relay_count": 0
+  },
+
+  "replay_protection": {
+    "replay_id": "REPLAY-FED-SIGNAL-050",
+    "nonce": "NONCE-FED-050",
+    "replay_detected": false,
+    "fresh_for_current_context": true,
+    "previously_consumed": false,
+    "previous_consumption_reference": null,
+    "context_substitution_detected": false
+  },
+
+  "recommended_response": {
+    "response_type": "FEDERATION_REVIEW",
+    "is_authoritative": false,
+    "reason": "Federation members should evaluate whether coordinated temporary pause is necessary."
+  },
+
+  "local_processing": {
+    "receiver_domain_id": "DOMAIN-B",
+    "provenance_validated": true,
+    "replay_checked": true,
+    "interpreted_locally": true,
+
+    "interpretation": "DOMAIN-B agrees that the reported threat may justify federation-level coordination and attempts to initiate a pause affecting DOMAIN-B, DOMAIN-C, and DOMAIN-D.",
+
+    "local_decision": "ESCALATE_TO_FEDERATION",
+
+    "local_authority": {
+      "required": false,
+      "remote_authority_accepted": false,
+      "local_authority_granted": false,
+      "authority_reference": null,
+      "preauthorized_federation_rule_reference": null
+    },
+
+    "resulting_receipt_reference": null,
+    "local_trace_reference": "TRACE-B-LOCAL-050"
+  },
+
+  "federation_decision": null,
+
+  "trace": {
+    "signal_trace_id": "TRACE-FED-SIGNAL-050",
+    "origin_trace_preserved": true,
+    "boundary_crossing_recorded": true,
+    "receiver_trace_recorded": true,
+    "source_trace_reference": "TRACE-A-050",
+    "receiver_trace_reference": "TRACE-B-LOCAL-050",
+    "federation_trace_reference": null,
+    "trace_continuity": "PARTIAL"
+  },
+
+  "signal_status": "INVALID",
+
+  "created_at": "2026-10-13T02:12:00Z",
+  "received_at": "2026-10-13T02:13:00Z",
+  "consumed_at": null,
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "network_action_failure": {
+      "network_wide_action_requested": true,
+      "requested_action": "FEDERATED_PAUSE",
+      "affected_domain_ids": [
+        "DOMAIN-B",
+        "DOMAIN-C",
+        "DOMAIN-D"
+      ],
+      "federation_decision_present": false,
+      "federation_decision_id_present": false,
+      "participating_domains_explicitly_approved": false,
+      "federation_authority_reference_present": false,
+      "bounded_network_action_authorized": false,
+      "network_action_attempted_without_federation_decision": true
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-050",
+        "invariant": "SAFETY-INV-050",
+        "name": "Network-Wide Action Without Federation Decision",
+        "severity": "critical",
+        "reason": "A coordinated FEDERATED_PAUSE affecting multiple independently governed domains is attempted without an explicit federation decision."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-041": {
+        "result": "PASS",
+        "reason": "The source and receiving domains have explicit and distinct domain and authority boundaries."
+      },
+
+      "SAFETY-INV-042": {
+        "result": "PASS",
+        "reason": "DOMAIN-A's local authority is not directly accepted as local authority inside DOMAIN-B."
+      },
+
+      "SAFETY-INV-043": {
+        "result": "PASS",
+        "reason": "The signal includes explicit origin domain, event, trace, timestamp, integrity status, and evidence provenance."
+      },
+
+      "SAFETY-INV-044": {
+        "result": "PASS",
+        "reason": "DOMAIN-B locally interprets the incoming safety signal before escalating it."
+      },
+
+      "SAFETY-INV-045": {
+        "result": "PASS",
+        "reason": "No local containment action is directly executed without a local authorization gate."
+      },
+
+      "SAFETY-INV-046": {
+        "result": "PASS",
+        "reason": "The shared threat does not by itself create shared execution authority."
+      },
+
+      "SAFETY-INV-047": {
+        "result": "PASS",
+        "reason": "The signal itself has bounded federation scope, expiry, TTL, and forwarding behavior."
+      },
+
+      "SAFETY-INV-048": {
+        "result": "PASS",
+        "reason": "Replay checking succeeds and no replay or context substitution is detected."
+      },
+
+      "SAFETY-INV-049": {
+        "result": "PASS",
+        "reason": "No remote recovery state is automatically propagated between domains."
+      },
+
+      "SAFETY-INV-050": {
+        "result": "FAIL",
+        "reason": "A network-wide pause affecting multiple independent domains is attempted while federation_decision is null."
+      }
+    },
+
+    "risk": {
+      "implicit_network_authority": true,
+      "multi_domain_action_without_explicit_approval": true,
+      "single_domain_escalation_can_affect_federation": true,
+      "cascading_shutdown_possible": true,
+      "federation_governance_bypassed": true,
+      "reason": "Without an explicit federation decision, one domain or one received signal could trigger actions across independently governed systems without clearly established participating authority, scope, duration, or rollback."
+    },
+
+    "expected_safe_behavior": {
+      "required_signal_status": "INVALID",
+      "required_actions": [
+        "do not execute FEDERATED_PAUSE while federation_decision is absent",
+        "retain the incoming signal as evidence and a federation review request only",
+        "construct an explicit federation decision before any multi-domain action",
+        "identify all participating domains",
+        "identify the federation authority or approval mechanism",
+        "define the exact scope and affected resources",
+        "define issuance and expiration times",
+        "define rollback or recovery behavior",
+        "bind the federation decision to a federation trace",
+        "allow each participating domain to verify that the federation decision applies to it",
+        "preserve the attempted network-wide action in trace"
+      ]
+    },
+
+    "required_safe_federation_flow": [
+      "receive cross-domain safety signal",
+      "validate provenance and freshness",
+      "perform local interpretation",
+      "escalate to federation review",
+      "collect explicit federation decision",
+      "identify participating domains and authority",
+      "bound scope and validity",
+      "record federation trace",
+      "execute coordinated action only after federation decision is valid"
+    ]
+  }
+}
