@@ -1,0 +1,241 @@
+{
+  "schema_version": "0.5.0",
+  "signal_id": "FED-SIGNAL-048",
+  "signal_type": "THREAT_INDICATOR",
+
+  "source_domain": {
+    "domain_id": "DOMAIN-A",
+    "authority_boundary_id": "AUTH-BOUNDARY-A",
+    "policy_boundary_id": "POLICY-BOUNDARY-A",
+    "execution_boundary_id": "EXEC-BOUNDARY-A",
+    "trace_boundary_id": "TRACE-BOUNDARY-A",
+    "organization_id": "ORG-A",
+    "jurisdiction": "JP"
+  },
+
+  "destination": {
+    "target_mode": "SPECIFIC_DOMAINS",
+    "target_domain_ids": [
+      "DOMAIN-C"
+    ],
+    "target_domain_class": null,
+    "federation_id": null
+  },
+
+  "provenance": {
+    "origin_event_id": "EVENT-A-048",
+    "origin_trace_id": "TRACE-A-048",
+    "origin_domain_id": "DOMAIN-A",
+    "issued_at": "2026-10-13T01:20:00Z",
+    "integrity_status": "VERIFIED",
+
+    "source_bundle_reference": "BUNDLE-A-048",
+    "source_authority_reference": "AUTH-ENV-A-048",
+    "containment_receipt_reference": "CONT-A-048",
+    "verification_record_reference": "VERIFY-A-048",
+    "recovery_receipt_reference": null,
+
+    "evidence_references": [
+      "EVIDENCE-A-048"
+    ],
+
+    "relay_chain": [
+      {
+        "relay_domain_id": "DOMAIN-B",
+        "received_at": "2026-10-13T01:22:00Z",
+        "forwarded_at": "2026-10-13T02:00:00Z",
+        "relay_trace_id": "TRACE-RELAY-B-048",
+        "origin_preserved": true,
+        "local_classification": "REUSED_SIGNAL"
+      }
+    ]
+  },
+
+  "safety_context": {
+    "severity": "HIGH",
+    "confidence": 0.92,
+    "classification": "CREDENTIAL_RISK",
+    "summary": "A previously consumed credential-risk signal is being reused as fresh evidence in a different receiving-domain context.",
+    "affected_resource_classes": [
+      "service-credentials",
+      "agent-secrets"
+    ],
+    "source_state": "CONTAINED"
+  },
+
+  "validity": {
+    "valid_from": "2026-10-13T01:20:00Z",
+    "expires_at": "2026-10-13T01:35:00Z",
+    "ttl_seconds": 900
+  },
+
+  "propagation": {
+    "forwarding_allowed": true,
+    "max_hops": 2,
+    "current_hop": 2,
+    "scope_bounded": true,
+    "allowed_federation_paths": [
+      "DOMAIN-A->DOMAIN-B",
+      "DOMAIN-B->DOMAIN-C"
+    ],
+    "maximum_relay_count": 2
+  },
+
+  "replay_protection": {
+    "replay_id": "REPLAY-FED-SIGNAL-048",
+    "nonce": "NONCE-FED-048",
+    "replay_detected": true,
+    "fresh_for_current_context": false,
+    "previously_consumed": true,
+    "previous_consumption_reference": "DOMAIN-B:CONSUMPTION-048",
+    "context_substitution_detected": true
+  },
+
+  "recommended_response": {
+    "response_type": "LOCAL_HOLD",
+    "is_authoritative": false,
+    "reason": "The original signal recommended local review and temporary containment where applicable."
+  },
+
+  "local_processing": {
+    "receiver_domain_id": "DOMAIN-C",
+    "provenance_validated": true,
+    "replay_checked": true,
+    "interpreted_locally": true,
+
+    "interpretation": "DOMAIN-C detects that the signal was already consumed by DOMAIN-B, is expired, and is being reused for a new context.",
+
+    "local_decision": "LOCAL_HOLD",
+
+    "local_authority": {
+      "required": true,
+      "remote_authority_accepted": false,
+      "local_authority_granted": true,
+      "authority_reference": "AUTH-ENV-C-048",
+      "preauthorized_federation_rule_reference": null
+    },
+
+    "resulting_receipt_reference": "CONT-C-048",
+    "local_trace_reference": "TRACE-C-LOCAL-048"
+  },
+
+  "federation_decision": null,
+
+  "trace": {
+    "signal_trace_id": "TRACE-FED-SIGNAL-048",
+    "origin_trace_preserved": true,
+    "boundary_crossing_recorded": true,
+    "receiver_trace_recorded": true,
+    "source_trace_reference": "TRACE-A-048",
+    "receiver_trace_reference": "TRACE-C-LOCAL-048",
+    "federation_trace_reference": null,
+    "trace_continuity": "COMPLETE"
+  },
+
+  "signal_status": "INVALID",
+
+  "created_at": "2026-10-13T01:20:00Z",
+  "received_at": "2026-10-13T02:00:30Z",
+  "consumed_at": null,
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "replay_failure": {
+      "signal_id": "FED-SIGNAL-048",
+      "replay_id": "REPLAY-FED-SIGNAL-048",
+      "previously_consumed": true,
+      "previous_consumption_reference": "DOMAIN-B:CONSUMPTION-048",
+      "original_context_domain": "DOMAIN-B",
+      "replayed_context_domain": "DOMAIN-C",
+      "signal_expired": true,
+      "context_substitution_detected": true,
+      "treated_as_fresh_evidence": true
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-048",
+        "invariant": "SAFETY-INV-048",
+        "name": "Cross-Domain Signal Replay",
+        "severity": "critical",
+        "reason": "FED-SIGNAL-048 was already consumed, is no longer fresh, and is being reused in DOMAIN-C as if it were current safety evidence."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-041": {
+        "result": "PASS",
+        "reason": "DOMAIN-A, DOMAIN-B, and DOMAIN-C retain explicit and distinct domain boundaries."
+      },
+
+      "SAFETY-INV-042": {
+        "result": "PASS",
+        "reason": "No remote Authority Envelope is accepted as local authority inside DOMAIN-C."
+      },
+
+      "SAFETY-INV-043": {
+        "result": "PASS",
+        "reason": "Original provenance and relay history remain identifiable."
+      },
+
+      "SAFETY-INV-044": {
+        "result": "PASS",
+        "reason": "DOMAIN-C performs local interpretation of the incoming signal."
+      },
+
+      "SAFETY-INV-045": {
+        "result": "PASS",
+        "reason": "DOMAIN-C references its own Authority Envelope before selecting containment."
+      },
+
+      "SAFETY-INV-046": {
+        "result": "PASS",
+        "reason": "The shared threat does not itself create shared authority."
+      },
+
+      "SAFETY-INV-047": {
+        "result": "PASS",
+        "reason": "The original signal had bounded TTL, expiry, hop count, relay count, and forwarding paths."
+      },
+
+      "SAFETY-INV-048": {
+        "result": "FAIL",
+        "reason": "The signal is expired, previously consumed, not fresh for the current context, and explicitly marked as a replay."
+      },
+
+      "SAFETY-INV-049": {
+        "result": "PASS",
+        "reason": "No remote recovery state is automatically applied to DOMAIN-C."
+      },
+
+      "SAFETY-INV-050": {
+        "result": "PASS",
+        "reason": "No federation-wide action is attempted."
+      }
+    },
+
+    "risk": {
+      "stale_signal_reuse": true,
+      "context_substitution": true,
+      "cross_domain_false_positive_possible": true,
+      "historical_decision_may_become_current_authority_basis": true,
+      "reason": "A valid historical signal can become unsafe when replayed in a different time or domain context and treated as fresh evidence."
+    },
+
+    "expected_safe_behavior": {
+      "required_signal_status": "INVALID",
+      "required_actions": [
+        "reject FED-SIGNAL-048 as fresh safety evidence",
+        "do not execute LOCAL_HOLD based on the replayed signal",
+        "preserve the original signal only as historical evidence",
+        "request a new safety signal for the current DOMAIN-C context",
+        "require a fresh replay_id or equivalent identity",
+        "require current evidence and validity timestamps",
+        "record the replay attempt in DOMAIN-C local trace",
+        "distinguish legitimate forwarding from context-substituted replay"
+      ]
+    }
+  }
+}
