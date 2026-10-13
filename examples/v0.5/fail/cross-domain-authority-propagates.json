@@ -1,0 +1,229 @@
+{
+  "schema_version": "0.5.0",
+  "signal_id": "FED-SIGNAL-AUTH-PROPAGATION-001",
+  "signal_type": "AUTHORITY_WARNING",
+
+  "source_domain": {
+    "domain_id": "DOMAIN-A",
+    "authority_boundary_id": "AUTH-BOUNDARY-A",
+    "policy_boundary_id": "POLICY-BOUNDARY-A",
+    "execution_boundary_id": "EXEC-BOUNDARY-A",
+    "trace_boundary_id": "TRACE-BOUNDARY-A",
+    "organization_id": "ORG-A",
+    "jurisdiction": "JP"
+  },
+
+  "destination": {
+    "target_mode": "SPECIFIC_DOMAINS",
+    "target_domain_ids": [
+      "DOMAIN-B"
+    ],
+    "target_domain_class": null,
+    "federation_id": null
+  },
+
+  "provenance": {
+    "origin_event_id": "EVENT-A-042",
+    "origin_trace_id": "TRACE-A-042",
+    "origin_domain_id": "DOMAIN-A",
+    "issued_at": "2026-10-13T01:43:00Z",
+    "integrity_status": "VERIFIED",
+
+    "source_bundle_reference": "BUNDLE-A-042",
+    "source_authority_reference": "AUTH-ENV-A-042",
+    "containment_receipt_reference": null,
+    "verification_record_reference": "VERIFY-A-042",
+    "recovery_receipt_reference": null,
+
+    "evidence_references": [
+      "EVIDENCE-A-042"
+    ],
+
+    "relay_chain": []
+  },
+
+  "safety_context": {
+    "severity": "HIGH",
+    "confidence": 0.93,
+    "classification": "AUTHORITY_RISK",
+    "summary": "Domain A reports an authority-related safety event and transmits its local authority context to Domain B.",
+    "affected_resource_classes": [
+      "agent-execution",
+      "service-control"
+    ],
+    "source_state": "RESTRICTED"
+  },
+
+  "validity": {
+    "valid_from": "2026-10-13T01:43:00Z",
+    "expires_at": "2026-10-13T01:58:00Z",
+    "ttl_seconds": 900
+  },
+
+  "propagation": {
+    "forwarding_allowed": false,
+    "max_hops": 0,
+    "current_hop": 0,
+    "scope_bounded": true,
+    "allowed_federation_paths": [
+      "DOMAIN-A->DOMAIN-B"
+    ],
+    "maximum_relay_count": 0
+  },
+
+  "replay_protection": {
+    "replay_id": "REPLAY-FED-SIGNAL-042",
+    "nonce": "NONCE-FED-042",
+    "replay_detected": false,
+    "fresh_for_current_context": true,
+    "previously_consumed": false,
+    "previous_consumption_reference": null,
+    "context_substitution_detected": false
+  },
+
+  "recommended_response": {
+    "response_type": "LOCAL_RESTRICT",
+    "is_authoritative": false,
+    "reason": "Domain B should independently determine whether local restriction is appropriate."
+  },
+
+  "local_processing": {
+    "receiver_domain_id": "DOMAIN-B",
+    "provenance_validated": true,
+    "replay_checked": true,
+    "interpreted_locally": true,
+
+    "interpretation": "Domain B accepted the remote safety event but incorrectly treated Domain A's Authority Envelope as valid execution authority inside Domain B.",
+
+    "local_decision": "LOCAL_RESTRICT",
+
+    "local_authority": {
+      "required": true,
+      "remote_authority_accepted": true,
+      "local_authority_granted": true,
+      "authority_reference": "AUTH-ENV-A-042",
+      "preauthorized_federation_rule_reference": null
+    },
+
+    "resulting_receipt_reference": "CONT-B-042",
+    "local_trace_reference": "TRACE-B-LOCAL-042"
+  },
+
+  "federation_decision": null,
+
+  "trace": {
+    "signal_trace_id": "TRACE-FED-SIGNAL-042",
+    "origin_trace_preserved": true,
+    "boundary_crossing_recorded": true,
+    "receiver_trace_recorded": true,
+    "source_trace_reference": "TRACE-A-042",
+    "receiver_trace_reference": "TRACE-B-LOCAL-042",
+    "federation_trace_reference": null,
+    "trace_continuity": "COMPLETE"
+  },
+
+  "signal_status": "INVALID",
+
+  "created_at": "2026-10-13T01:43:00Z",
+  "received_at": "2026-10-13T01:44:00Z",
+  "consumed_at": null,
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "cross_domain_authority_failure": {
+      "source_domain_id": "DOMAIN-A",
+      "receiver_domain_id": "DOMAIN-B",
+      "source_authority_reference": "AUTH-ENV-A-042",
+      "receiver_authority_reference": "AUTH-ENV-A-042",
+      "same_authority_reference": true,
+      "remote_authority_accepted": true,
+      "fresh_local_authority_issued": false,
+      "cross_domain_authority_propagated": true
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-042",
+        "invariant": "SAFETY-INV-042",
+        "name": "Automatic Cross-Domain Authority Propagation",
+        "severity": "critical",
+        "reason": "DOMAIN-B accepts AUTH-ENV-A-042 from DOMAIN-A as effective local authority instead of issuing or referencing an independent DOMAIN-B authority decision."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-041": {
+        "result": "PASS",
+        "reason": "DOMAIN-A and DOMAIN-B are explicitly separated by distinct domain and authority boundaries."
+      },
+
+      "SAFETY-INV-042": {
+        "result": "FAIL",
+        "reason": "AUTH-ENV-A-042 crosses the domain boundary and is treated as effective authority inside DOMAIN-B."
+      },
+
+      "SAFETY-INV-043": {
+        "result": "PASS",
+        "reason": "The signal contains explicit source domain, origin event, trace, timestamp, integrity status, and evidence provenance."
+      },
+
+      "SAFETY-INV-044": {
+        "result": "PASS",
+        "reason": "DOMAIN-B records a local interpretation of the incoming safety signal before acting."
+      },
+
+      "SAFETY-INV-045": {
+        "result": "PASS",
+        "reason": "The failure in this fixture is authority propagation itself rather than a direct remote containment command bypassing the local decision process."
+      },
+
+      "SAFETY-INV-046": {
+        "result": "PASS",
+        "reason": "The fixture does not create federation-wide shared authority among multiple domains; it specifically demonstrates one authority crossing a single domain boundary."
+      },
+
+      "SAFETY-INV-047": {
+        "result": "PASS",
+        "reason": "The signal has explicit destination, expiry, TTL, and zero forwarding hops."
+      },
+
+      "SAFETY-INV-048": {
+        "result": "PASS",
+        "reason": "Replay checking is complete and no replay or context substitution is detected."
+      },
+
+      "SAFETY-INV-049": {
+        "result": "PASS",
+        "reason": "No federated recovery or automatic remote recovery behavior occurs in this fixture."
+      },
+
+      "SAFETY-INV-050": {
+        "result": "PASS",
+        "reason": "No network-wide action is attempted and no federation-level decision is required."
+      }
+    },
+
+    "risk": {
+      "authority_boundary_bypassed": true,
+      "remote_privilege_effective_locally": true,
+      "cross_domain_privilege_escalation_possible": true,
+      "local_autonomy_preserved": false,
+      "reason": "If remote Authority Envelopes remain effective after crossing domain boundaries, compromise or excessive privilege in one domain can become effective power in another."
+    },
+
+    "expected_safe_behavior": {
+      "required_signal_status": "INVALID",
+      "required_actions": [
+        "reject AUTH-ENV-A-042 as effective local authority inside DOMAIN-B",
+        "set remote_authority_accepted to false",
+        "keep the remote authority reference only as provenance or evidence",
+        "require an independent DOMAIN-B authority decision before LOCAL_RESTRICT can take effect",
+        "issue or reference a DOMAIN-B-specific Authority Envelope",
+        "bind the local authority to DOMAIN-B's own policy and execution boundary",
+        "preserve the attempted authority propagation in trace"
+      ]
+    }
+  }
+}
