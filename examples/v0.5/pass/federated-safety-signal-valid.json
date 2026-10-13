@@ -1,0 +1,253 @@
+{
+  "schema_version": "0.5.0",
+  "signal_id": "FED-SIGNAL-001",
+  "signal_type": "THREAT_INDICATOR",
+
+  "source_domain": {
+    "domain_id": "DOMAIN-A",
+    "authority_boundary_id": "AUTH-BOUNDARY-A",
+    "policy_boundary_id": "POLICY-BOUNDARY-A",
+    "execution_boundary_id": "EXEC-BOUNDARY-A",
+    "trace_boundary_id": "TRACE-BOUNDARY-A",
+    "organization_id": "ORG-A",
+    "jurisdiction": "JP"
+  },
+
+  "destination": {
+    "target_mode": "SPECIFIC_DOMAINS",
+    "target_domain_ids": [
+      "DOMAIN-B"
+    ],
+    "target_domain_class": null,
+    "federation_id": null
+  },
+
+  "provenance": {
+    "origin_event_id": "EVENT-A-001",
+    "origin_trace_id": "TRACE-A-001",
+    "origin_domain_id": "DOMAIN-A",
+    "issued_at": "2026-10-13T01:30:00Z",
+    "integrity_status": "VERIFIED",
+
+    "source_bundle_reference": "BUNDLE-A-001",
+    "source_authority_reference": "AUTH-ENV-A-001",
+    "containment_receipt_reference": "CONT-A-001",
+    "verification_record_reference": "VERIFY-A-001",
+    "recovery_receipt_reference": null,
+
+    "evidence_references": [
+      "EVIDENCE-A-001",
+      "EVIDENCE-A-002"
+    ],
+
+    "relay_chain": []
+  },
+
+  "safety_context": {
+    "severity": "HIGH",
+    "confidence": 0.94,
+    "classification": "CREDENTIAL_RISK",
+    "summary": "Domain A observed suspicious reuse of a credential pattern that may also exist in Domain B.",
+    "affected_resource_classes": [
+      "service-credentials",
+      "agent-secrets"
+    ],
+    "source_state": "CONTAINED"
+  },
+
+  "validity": {
+    "valid_from": "2026-10-13T01:30:00Z",
+    "expires_at": "2026-10-13T01:45:00Z",
+    "ttl_seconds": 900
+  },
+
+  "propagation": {
+    "forwarding_allowed": true,
+    "max_hops": 2,
+    "current_hop": 1,
+    "scope_bounded": true,
+    "allowed_federation_paths": [
+      "DOMAIN-A->DOMAIN-B"
+    ],
+    "maximum_relay_count": 2
+  },
+
+  "replay_protection": {
+    "replay_id": "REPLAY-FED-SIGNAL-001",
+    "nonce": "NONCE-FED-001",
+    "replay_detected": false,
+    "fresh_for_current_context": true,
+    "previously_consumed": false,
+    "previous_consumption_reference": null,
+    "context_substitution_detected": false
+  },
+
+  "recommended_response": {
+    "response_type": "LOCAL_HOLD",
+    "is_authoritative": false,
+    "reason": "Domain B should evaluate whether the reported credential pattern exists locally and may hold affected execution while local verification is performed."
+  },
+
+  "local_processing": {
+    "receiver_domain_id": "DOMAIN-B",
+    "provenance_validated": true,
+    "replay_checked": true,
+    "interpreted_locally": true,
+
+    "interpretation": "Domain B confirmed that a matching credential class exists locally. Because local exposure cannot yet be ruled out, temporary local containment is appropriate.",
+
+    "local_decision": "LOCAL_HOLD",
+
+    "local_authority": {
+      "required": true,
+      "remote_authority_accepted": false,
+      "local_authority_granted": true,
+      "authority_reference": "AUTH-ENV-B-LOCAL-HOLD-001",
+      "preauthorized_federation_rule_reference": null
+    },
+
+    "resulting_receipt_reference": "CONT-B-LOCAL-001",
+    "local_trace_reference": "TRACE-B-LOCAL-001"
+  },
+
+  "federation_decision": null,
+
+  "trace": {
+    "signal_trace_id": "TRACE-FED-SIGNAL-001",
+    "origin_trace_preserved": true,
+    "boundary_crossing_recorded": true,
+    "receiver_trace_recorded": true,
+    "source_trace_reference": "TRACE-A-001",
+    "receiver_trace_reference": "TRACE-B-LOCAL-001",
+    "federation_trace_reference": null,
+    "trace_continuity": "COMPLETE"
+  },
+
+  "signal_status": "CONSUMED",
+
+  "created_at": "2026-10-13T01:30:00Z",
+  "received_at": "2026-10-13T01:31:00Z",
+  "consumed_at": "2026-10-13T01:33:00Z",
+
+  "metadata": {
+    "expected_result": "PASS",
+    "profile": "RESILIENT",
+
+    "domain_boundary_checks": {
+      "source_domain_explicit": true,
+      "receiver_domain_explicit": true,
+      "source_and_receiver_domains_distinct": true,
+      "authority_boundary_crossed": true
+    },
+
+    "authority_checks": {
+      "remote_authority_propagated": false,
+      "remote_recommendation_authoritative": false,
+      "local_authority_required": true,
+      "local_authority_granted": true,
+      "local_authority_reference_present": true
+    },
+
+    "provenance_checks": {
+      "origin_domain_matches_source_domain": true,
+      "origin_event_present": true,
+      "origin_trace_present": true,
+      "integrity_verified": true,
+      "origin_trace_preserved": true
+    },
+
+    "propagation_checks": {
+      "scope_bounded": true,
+      "ttl_present": true,
+      "expiration_present": true,
+      "max_hops_present": true,
+      "current_hop_within_limit": true,
+      "forwarding_path_allowed": true
+    },
+
+    "replay_checks": {
+      "replay_checked": true,
+      "replay_detected": false,
+      "fresh_for_current_context": true,
+      "context_substitution_detected": false
+    },
+
+    "local_processing_checks": {
+      "interpreted_locally": true,
+      "remote_instruction_executed_directly": false,
+      "local_risk_context_evaluated": true,
+      "local_decision_explicit": true
+    },
+
+    "recovery_checks": {
+      "remote_recovery_auto_applied": false,
+      "local_domain_autonomy_preserved": true
+    },
+
+    "federation_checks": {
+      "network_wide_action_requested": false,
+      "federation_decision_required": false,
+      "implicit_federation_authority_created": false
+    },
+
+    "invariants": {
+      "SAFETY-INV-041": {
+        "result": "PASS",
+        "reason": "DOMAIN-A and DOMAIN-B are explicitly represented as distinct independently governed domains with separate authority boundaries."
+      },
+
+      "SAFETY-INV-042": {
+        "result": "PASS",
+        "reason": "Authority from DOMAIN-A does not propagate into DOMAIN-B; DOMAIN-B uses AUTH-ENV-B-LOCAL-HOLD-001 for its local action."
+      },
+
+      "SAFETY-INV-043": {
+        "result": "PASS",
+        "reason": "The signal includes origin domain, event, trace, timestamp, integrity state, and supporting evidence references."
+      },
+
+      "SAFETY-INV-044": {
+        "result": "PASS",
+        "reason": "DOMAIN-B interprets the incoming signal in its own local credential and execution context before deciding to act."
+      },
+
+      "SAFETY-INV-045": {
+        "result": "PASS",
+        "reason": "The remote recommendation does not directly contain DOMAIN-B; LOCAL_HOLD is authorized by a separate local Authority Envelope."
+      },
+
+      "SAFETY-INV-046": {
+        "result": "PASS",
+        "reason": "The shared credential threat is treated as shared evidence and does not create shared execution authority."
+      },
+
+      "SAFETY-INV-047": {
+        "result": "PASS",
+        "reason": "Signal propagation is bounded by explicit destinations, expiry, TTL, hop limit, relay limit, and allowed federation path."
+      },
+
+      "SAFETY-INV-048": {
+        "result": "PASS",
+        "reason": "Replay checking was performed, the signal is fresh for the current context, and no prior consumption or context substitution was detected."
+      },
+
+      "SAFETY-INV-049": {
+        "result": "PASS",
+        "reason": "DOMAIN-B retains independent control over its local containment and any future recovery or re-authorization decision."
+      },
+
+      "SAFETY-INV-050": {
+        "result": "PASS",
+        "reason": "No federation-wide action is attempted, so no federation-level authority is implicitly created."
+      }
+    },
+
+    "safety_summary": {
+      "remote_information_received": true,
+      "remote_authority_received": false,
+      "local_interpretation_completed": true,
+      "local_authority_used": true,
+      "network_wide_action_performed": false
+    }
+  }
+}
