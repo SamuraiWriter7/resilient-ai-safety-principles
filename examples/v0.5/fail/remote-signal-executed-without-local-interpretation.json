@@ -1,0 +1,227 @@
+{
+  "schema_version": "0.5.0",
+  "signal_id": "FED-SIGNAL-NO-LOCAL-INTERPRETATION-001",
+  "signal_type": "SAFETY_ALERT",
+
+  "source_domain": {
+    "domain_id": "DOMAIN-A",
+    "authority_boundary_id": "AUTH-BOUNDARY-A",
+    "policy_boundary_id": "POLICY-BOUNDARY-A",
+    "execution_boundary_id": "EXEC-BOUNDARY-A",
+    "trace_boundary_id": "TRACE-BOUNDARY-A",
+    "organization_id": "ORG-A",
+    "jurisdiction": "JP"
+  },
+
+  "destination": {
+    "target_mode": "SPECIFIC_DOMAINS",
+    "target_domain_ids": [
+      "DOMAIN-B"
+    ],
+    "target_domain_class": null,
+    "federation_id": null
+  },
+
+  "provenance": {
+    "origin_event_id": "EVENT-A-044",
+    "origin_trace_id": "TRACE-A-044",
+    "origin_domain_id": "DOMAIN-A",
+    "issued_at": "2026-10-13T01:50:00Z",
+    "integrity_status": "VERIFIED",
+
+    "source_bundle_reference": "BUNDLE-A-044",
+    "source_authority_reference": "AUTH-ENV-A-044",
+    "containment_receipt_reference": "CONT-A-044",
+    "verification_record_reference": "VERIFY-A-044",
+    "recovery_receipt_reference": null,
+
+    "evidence_references": [
+      "EVIDENCE-A-044"
+    ],
+
+    "relay_chain": []
+  },
+
+  "safety_context": {
+    "severity": "HIGH",
+    "confidence": 0.95,
+    "classification": "MALICIOUS_ACTIVITY",
+    "summary": "Domain A observed malicious activity against service-x and recommends temporary local containment in potentially affected domains.",
+    "affected_resource_classes": [
+      "service-x",
+      "agent-runtime"
+    ],
+    "source_state": "CONTAINED"
+  },
+
+  "validity": {
+    "valid_from": "2026-10-13T01:50:00Z",
+    "expires_at": "2026-10-13T02:05:00Z",
+    "ttl_seconds": 900
+  },
+
+  "propagation": {
+    "forwarding_allowed": false,
+    "max_hops": 0,
+    "current_hop": 0,
+    "scope_bounded": true,
+    "allowed_federation_paths": [
+      "DOMAIN-A->DOMAIN-B"
+    ],
+    "maximum_relay_count": 0
+  },
+
+  "replay_protection": {
+    "replay_id": "REPLAY-FED-SIGNAL-044",
+    "nonce": "NONCE-FED-044",
+    "replay_detected": false,
+    "fresh_for_current_context": true,
+    "previously_consumed": false,
+    "previous_consumption_reference": null,
+    "context_substitution_detected": false
+  },
+
+  "recommended_response": {
+    "response_type": "LOCAL_HOLD",
+    "is_authoritative": false,
+    "reason": "Potentially affected domains should evaluate whether temporary local containment is appropriate."
+  },
+
+  "local_processing": {
+    "receiver_domain_id": "DOMAIN-B",
+    "provenance_validated": true,
+    "replay_checked": true,
+    "interpreted_locally": false,
+
+    "interpretation": null,
+
+    "local_decision": "LOCAL_HOLD",
+
+    "local_authority": {
+      "required": true,
+      "remote_authority_accepted": false,
+      "local_authority_granted": true,
+      "authority_reference": "AUTH-ENV-B-044",
+      "preauthorized_federation_rule_reference": null
+    },
+
+    "resulting_receipt_reference": "CONT-B-044",
+    "local_trace_reference": "TRACE-B-LOCAL-044"
+  },
+
+  "federation_decision": null,
+
+  "trace": {
+    "signal_trace_id": "TRACE-FED-SIGNAL-044",
+    "origin_trace_preserved": true,
+    "boundary_crossing_recorded": true,
+    "receiver_trace_recorded": true,
+    "source_trace_reference": "TRACE-A-044",
+    "receiver_trace_reference": "TRACE-B-LOCAL-044",
+    "federation_trace_reference": null,
+    "trace_continuity": "COMPLETE"
+  },
+
+  "signal_status": "INVALID",
+
+  "created_at": "2026-10-13T01:50:00Z",
+  "received_at": "2026-10-13T01:51:00Z",
+  "consumed_at": null,
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "local_interpretation_failure": {
+      "receiver_domain_id": "DOMAIN-B",
+      "remote_recommendation": "LOCAL_HOLD",
+      "local_interpretation_performed": false,
+      "local_context_evaluated": false,
+      "local_decision_matches_remote_recommendation": true,
+      "direct_recommendation_to_decision_transition": true
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-044",
+        "invariant": "SAFETY-INV-044",
+        "name": "Remote Signal Executed Without Local Interpretation",
+        "severity": "critical",
+        "reason": "DOMAIN-B converts the remote LOCAL_HOLD recommendation directly into a local decision without evaluating whether the reported threat applies in DOMAIN-B's own operational context."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-041": {
+        "result": "PASS",
+        "reason": "DOMAIN-A and DOMAIN-B have explicit and distinct domain and authority boundaries."
+      },
+
+      "SAFETY-INV-042": {
+        "result": "PASS",
+        "reason": "DOMAIN-A authority is not accepted as effective authority inside DOMAIN-B."
+      },
+
+      "SAFETY-INV-043": {
+        "result": "PASS",
+        "reason": "The signal includes origin domain, event, trace, timestamp, integrity status, and supporting evidence references."
+      },
+
+      "SAFETY-INV-044": {
+        "result": "FAIL",
+        "reason": "DOMAIN-B does not perform local interpretation before converting the incoming recommendation into LOCAL_HOLD."
+      },
+
+      "SAFETY-INV-045": {
+        "result": "PASS",
+        "reason": "DOMAIN-B references its own local Authority Envelope before applying containment; the failure is specifically the missing interpretation step."
+      },
+
+      "SAFETY-INV-046": {
+        "result": "PASS",
+        "reason": "The shared threat signal does not create shared execution authority."
+      },
+
+      "SAFETY-INV-047": {
+        "result": "PASS",
+        "reason": "Propagation is bounded by explicit destination, expiry, TTL, and zero forwarding hops."
+      },
+
+      "SAFETY-INV-048": {
+        "result": "PASS",
+        "reason": "Replay checking was performed and no replay or context substitution was detected."
+      },
+
+      "SAFETY-INV-049": {
+        "result": "PASS",
+        "reason": "No remote recovery state is automatically applied to DOMAIN-B."
+      },
+
+      "SAFETY-INV-050": {
+        "result": "PASS",
+        "reason": "No federation-wide action is attempted."
+      }
+    },
+
+    "risk": {
+      "remote_policy_copied_locally": true,
+      "context_mismatch_possible": true,
+      "false_positive_containment_possible": true,
+      "local_decision_quality_reduced": true,
+      "reason": "A recommendation that is appropriate in DOMAIN-A may be unnecessary, incorrect, or harmful in DOMAIN-B if local resources, policies, state, or threat exposure differ."
+    },
+
+    "expected_safe_behavior": {
+      "required_signal_status": "INVALID",
+      "required_actions": [
+        "reject the direct recommendation-to-action transition",
+        "perform a DOMAIN-B-specific interpretation of EVENT-A-044",
+        "determine whether service-x or equivalent affected resources exist locally",
+        "evaluate local exposure, state, policy, and current evidence",
+        "record the local interpretation before selecting a local decision",
+        "retain AUTH-ENV-B-044 only if LOCAL_HOLD remains justified after local evaluation",
+        "preserve the missing-interpretation event in trace"
+      ]
+    }
+  }
+}
