@@ -4,1920 +4,541 @@ from __future__ import annotations
 
 import json
 import sys
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
+SCHEMAS_DIR = ROOT / "schemas"
+EXAMPLES_DIR = ROOT / "examples"
 
-# ============================================================================
-# Schema paths
-# ============================================================================
-
-V01_SCHEMA_PATH = ROOT / "schemas" / "safety-assessment.schema.json"
-
-V02_SCHEMA_PATHS = {
-    "authority-envelope": ROOT / "schemas" / "authority-envelope.schema.json",
-    "containment-receipt": ROOT / "schemas" / "containment-receipt.schema.json",
-    "verification-record": ROOT / "schemas" / "verification-record.schema.json",
-    "recovery-receipt": ROOT / "schemas" / "recovery-receipt.schema.json",
-}
-
-V03_SCHEMA_PATH = ROOT / "schemas" / "safety-receipt-bundle.schema.json"
-
-V04_SCHEMA_PATH = ROOT / "schemas" / "safety-branch-bundle.schema.json"
-
-
-# ============================================================================
-# Example directories
-# ============================================================================
-
-V01_PASS_DIR = ROOT / "examples" / "pass"
-V01_FAIL_DIR = ROOT / "examples" / "fail"
-
-V02_PASS_DIR = ROOT / "examples" / "v0.2" / "pass"
-V02_FAIL_DIR = ROOT / "examples" / "v0.2" / "fail"
-
-V03_PASS_DIR = ROOT / "examples" / "v0.3" / "pass"
-V03_FAIL_DIR = ROOT / "examples" / "v0.3" / "fail"
-
-V04_PASS_DIR = ROOT / "examples" / "v0.4" / "pass"
-V04_FAIL_DIR = ROOT / "examples" / "v0.4" / "fail"
-
-
-# ============================================================================
-# Invariants
-# ============================================================================
-
-V01_INVARIANTS = {
-    f"SAFETY-INV-{number:03d}"
-    for number in range(1, 11)
-}
-
-V02_INVARIANTS = {
-    f"SAFETY-INV-{number:03d}"
-    for number in range(11, 21)
-}
-
-V03_INVARIANTS = {
-    f"SAFETY-INV-{number:03d}"
-    for number in range(21, 31)
-}
-
-V04_INVARIANTS = {
-    f"SAFETY-INV-{number:03d}"
-    for number in range(31, 41)
+SCHEMA_FILES = {
+    "v0.1": SCHEMAS_DIR / "safety-assessment.schema.json",
+    "v0.2-authority": SCHEMAS_DIR / "authority-envelope.schema.json",
+    "v0.2-containment": SCHEMAS_DIR / "containment-receipt.schema.json",
+    "v0.2-verification": SCHEMAS_DIR / "verification-record.schema.json",
+    "v0.2-recovery": SCHEMAS_DIR / "recovery-receipt.schema.json",
+    "v0.3": SCHEMAS_DIR / "safety-receipt-bundle.schema.json",
+    "v0.4": SCHEMAS_DIR / "safety-branch-bundle.schema.json",
+    "v0.5": SCHEMAS_DIR / "federated-safety-signal.schema.json",
 }
 
 
-@dataclass
-class ValidationResult:
-    path: Path
-    expected_result: str
-    schema_name: str
-    valid: bool
-    errors: list[str]
-
-
-# ============================================================================
+# ---------------------------------------------------------------------------
 # Generic helpers
-# ============================================================================
+# ---------------------------------------------------------------------------
 
 
 def load_json(path: Path) -> Any:
-    with path.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+    with path.open("r", encoding="utf-8") as f:
+        return json.load(f)
 
 
-def parse_datetime(value: str) -> datetime:
-    parsed = datetime.fromisoformat(
-        value.replace("Z", "+00:00")
-    )
-
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
-
-    return parsed.astimezone(timezone.utc)
+def fail(message: str) -> None:
+    raise AssertionError(message)
 
 
-def format_schema_path(error: Any) -> str:
-    if not error.absolute_path:
-        return "$"
-
-    parts: list[str] = []
-
-    for item in error.absolute_path:
-        if isinstance(item, int):
-            parts.append(f"[{item}]")
-        else:
-            if parts:
-                parts.append(".")
-            parts.append(str(item))
-
-    return "$." + "".join(parts)
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        fail(message)
 
 
-def validate_schema_document(
-    schema_path: Path,
-) -> tuple[dict[str, Any], Draft202012Validator]:
-    schema = load_json(schema_path)
+def nested_get(data: dict[str, Any], *keys: str, default: Any = None) -> Any:
+    current: Any = data
 
-    Draft202012Validator.check_schema(schema)
+    for key in keys:
+        if not isinstance(current, dict) or key not in current:
+            return default
+        current = current[key]
 
+    return current
+
+
+def parse_datetime(value: str | None) -> datetime | None:
+    if not value or not isinstance(value, str):
+        return None
+
+    try:
+        if value.endswith("Z"):
+            return datetime.fromisoformat(value[:-1] + "+00:00")
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def normalize_datetime(dt: datetime | None) -> datetime | None:
+    if dt is None:
+        return None
+
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+
+    return dt
+
+
+def schema_errors(
+    instance: Any,
+    schema: dict[str, Any],
+) -> list[str]:
     validator = Draft202012Validator(
         schema,
         format_checker=FormatChecker(),
     )
 
-    return schema, validator
-
-
-def schema_errors(
-    instance: dict[str, Any],
-    validator: Draft202012Validator,
-) -> list[str]:
     errors: list[str] = []
 
-    ordered = sorted(
+    for error in sorted(
         validator.iter_errors(instance),
-        key=lambda error: list(error.absolute_path),
-    )
+        key=lambda e: list(e.absolute_path),
+    ):
+        location = "$"
 
-    for error in ordered:
-        errors.append(
-            f"{format_schema_path(error)}: {error.message}"
-        )
+        if error.absolute_path:
+            location += "".join(
+                f"[{repr(part)}]" if isinstance(part, int) else f".{part}"
+                for part in error.absolute_path
+            )
+
+        errors.append(f"{location}: {error.message}")
 
     return errors
 
 
-def get_expected_result_from_path(path: Path) -> str:
-    lowered = {
-        part.lower()
-        for part in path.parts
-    }
+def expected_result(data: dict[str, Any]) -> str | None:
+    result = nested_get(data, "metadata", "expected_result")
 
-    if "pass" in lowered:
-        return "PASS"
-
-    if "fail" in lowered:
-        return "FAIL"
-
-    raise ValueError(
-        f"Cannot determine expected PASS/FAIL result from path: {path}"
-    )
-
-
-def discover_json_files(directory: Path) -> list[Path]:
-    if not directory.exists():
-        return []
-
-    return sorted(
-        path
-        for path in directory.rglob("*.json")
-        if path.is_file()
-    )
-
-
-def get_metadata(
-    instance: dict[str, Any],
-) -> dict[str, Any]:
-    metadata = instance.get("metadata")
-
-    if isinstance(metadata, dict):
-        return metadata
-
-    return {}
-
-
-def get_declared_expected_result(
-    instance: dict[str, Any],
-) -> str | None:
-    direct = instance.get("expected_result")
-
-    if isinstance(direct, str):
-        return direct
-
-    metadata = get_metadata(instance)
-    nested = metadata.get("expected_result")
-
-    if isinstance(nested, str):
-        return nested
+    if isinstance(result, str):
+        return result.upper()
 
     return None
 
 
-def get_invariants(
-    instance: dict[str, Any],
-) -> dict[str, Any]:
-    direct = instance.get("invariants")
+def expected_failed_invariants(data: dict[str, Any]) -> set[str]:
+    invariants = nested_get(data, "metadata", "invariants", default={})
 
-    if isinstance(direct, dict):
-        return direct
+    if not isinstance(invariants, dict):
+        return set()
 
-    metadata = get_metadata(instance)
-    nested = metadata.get("invariants")
+    failed: set[str] = set()
 
-    if isinstance(nested, dict):
-        return nested
-
-    return {}
-
-
-def get_violations(
-    instance: dict[str, Any],
-) -> list[dict[str, Any]]:
-    direct = instance.get("violations")
-
-    if isinstance(direct, list):
-        return [
-            item
-            for item in direct
-            if isinstance(item, dict)
-        ]
-
-    metadata = get_metadata(instance)
-    nested = metadata.get("violations")
-
-    if isinstance(nested, list):
-        return [
-            item
-            for item in nested
-            if isinstance(item, dict)
-        ]
-
-    return []
-
-
-def validate_expected_result(
-    instance: dict[str, Any],
-    expected_result: str,
-) -> list[str]:
-    errors: list[str] = []
-
-    declared = get_declared_expected_result(instance)
-
-    if (
-        declared is not None
-        and declared != expected_result
-    ):
-        errors.append(
-            "expected result mismatch: "
-            f"path expects {expected_result}, "
-            f"document declares {declared}"
-        )
-
-    return errors
-
-
-def require_exact_invariants(
-    instance: dict[str, Any],
-    expected_invariants: set[str],
-) -> list[str]:
-    errors: list[str] = []
-
-    present = set(get_invariants(instance).keys())
-
-    missing = sorted(
-        expected_invariants - present
-    )
-
-    extra = sorted(
-        present - expected_invariants
-    )
-
-    if missing:
-        errors.append(
-            "missing invariants: "
-            + ", ".join(missing)
-        )
-
-    if extra:
-        errors.append(
-            "unexpected invariants: "
-            + ", ".join(extra)
-        )
-
-    return errors
-
-
-def validate_invariant_subset(
-    instance: dict[str, Any],
-    relevant_invariants: set[str],
-    expected_result: str,
-) -> list[str]:
-    errors: list[str] = []
-
-    invariants = get_invariants(instance)
-
-    if not invariants:
-        return ["invariant assessments are missing"]
-
-    failing: set[str] = set()
-
-    for invariant_id in sorted(
-        set(invariants) & relevant_invariants
-    ):
-        assessment = invariants[invariant_id]
-
-        if not isinstance(assessment, dict):
-            errors.append(
-                f"{invariant_id}: assessment must be an object"
-            )
-            continue
-
-        result = assessment.get("result")
-        reason = assessment.get("reason")
-
-        if result not in {
-            "PASS",
-            "FAIL",
-            "NOT_APPLICABLE",
-        }:
-            errors.append(
-                f"{invariant_id}: invalid result {result!r}"
-            )
-
+    for invariant_id, result in invariants.items():
         if (
-            not isinstance(reason, str)
-            or not reason.strip()
+            isinstance(result, dict)
+            and str(result.get("result", "")).upper() == "FAIL"
         ):
-            errors.append(
-                f"{invariant_id}: non-empty reason is required"
-            )
+            failed.add(invariant_id)
 
-        if result == "FAIL":
-            failing.add(invariant_id)
-
-    if expected_result == "PASS" and failing:
-        errors.append(
-            "PASS example contains failing invariants: "
-            + ", ".join(sorted(failing))
-        )
-
-    if expected_result == "FAIL" and not failing:
-        errors.append(
-            "FAIL example does not contain a failing relevant invariant"
-        )
-
-    for violation in get_violations(instance):
-        invariant_id = violation.get("invariant")
-
-        if invariant_id not in relevant_invariants:
-            continue
-
-        assessment = invariants.get(invariant_id)
-
-        if (
-            not isinstance(assessment, dict)
-            or assessment.get("result") != "FAIL"
-        ):
-            errors.append(
-                "violation references invariant not marked FAIL: "
-                f"{invariant_id}"
-            )
-
-    return errors
+    return failed
 
 
-def invariant_is_fail(
-    instance: dict[str, Any],
-    invariant_id: str,
-) -> bool:
-    assessment = get_invariants(instance).get(invariant_id)
-
-    return (
-        isinstance(assessment, dict)
-        and assessment.get("result") == "FAIL"
-    )
+def unique_non_null(values: list[Any]) -> bool:
+    filtered = [value for value in values if value is not None]
+    return len(filtered) == len(set(filtered))
 
 
-def require_failure(
-    instance: dict[str, Any],
-    invariant_id: str,
-    message: str,
-) -> list[str]:
-    if invariant_is_fail(
-        instance,
-        invariant_id,
-    ):
-        return []
-
-    return [
-        f"{message}; {invariant_id} must be FAIL"
-    ]
-
-
-def relative_path(path: Path) -> str:
-    try:
-        return str(
-            path.relative_to(ROOT)
-        )
-    except ValueError:
-        return str(path)
-
-
-# ============================================================================
+# ---------------------------------------------------------------------------
 # v0.1
-# ============================================================================
+# ---------------------------------------------------------------------------
 
 
-def validate_v01_semantics(
-    instance: dict[str, Any],
-    expected_result: str,
-) -> list[str]:
-    errors: list[str] = []
+def validate_v01_semantics(data: dict[str, Any]) -> list[str]:
+    violations: list[str] = []
 
-    errors.extend(
-        validate_expected_result(
-            instance,
-            expected_result,
-        )
-    )
+    invariants = nested_get(data, "metadata", "invariants", default={})
 
-    errors.extend(
-        require_exact_invariants(
-            instance,
-            V01_INVARIANTS,
-        )
-    )
-
-    errors.extend(
-        validate_invariant_subset(
-            instance,
-            V01_INVARIANTS,
-            expected_result,
-        )
-    )
-
-    conformance = instance.get("conformance")
-
-    if isinstance(conformance, dict):
-        result = conformance.get("result")
-
-        if result != expected_result:
-            errors.append(
-                "conformance.result mismatch: "
-                f"expected {expected_result}, got {result!r}"
-            )
-
-        if expected_result == "FAIL":
-            primary = conformance.get("primary_failure")
-
-            if not isinstance(primary, str):
-                errors.append(
-                    "FAIL example requires conformance.primary_failure"
-                )
-            elif primary not in V01_INVARIANTS:
-                errors.append(
-                    f"invalid primary_failure: {primary}"
-                )
-            elif not invariant_is_fail(
-                instance,
-                primary,
+    if isinstance(invariants, dict):
+        for invariant_id, info in invariants.items():
+            if (
+                isinstance(info, dict)
+                and str(info.get("result", "")).upper() == "FAIL"
             ):
-                errors.append(
-                    "primary_failure invariant must be marked FAIL"
-                )
+                violations.append(invariant_id)
 
-    trace = instance.get("trace")
-
-    if isinstance(trace, dict):
-        complete = trace.get("causal_chain_complete")
-        missing = trace.get("missing_links")
-
-        if isinstance(missing, list):
-            if complete is True and missing:
-                errors.append(
-                    "trace.causal_chain_complete=true "
-                    "but missing_links is non-empty"
-                )
-
-            if complete is False and not missing:
-                errors.append(
-                    "trace.causal_chain_complete=false "
-                    "but missing_links is empty"
-                )
-
-    return errors
+    return violations
 
 
-# ============================================================================
+# ---------------------------------------------------------------------------
 # v0.2
-# ============================================================================
+# ---------------------------------------------------------------------------
 
 
-def validate_v02_common(
-    instance: dict[str, Any],
-    expected_result: str,
-    relevant_invariants: set[str],
-) -> list[str]:
-    errors: list[str] = []
+def validate_v02_authority(data: dict[str, Any]) -> list[str]:
+    violations: list[str] = []
 
-    errors.extend(
-        validate_expected_result(
-            instance,
-            expected_result,
-        )
-    )
+    metadata = data.get("metadata", {})
+    invariant_results = metadata.get("invariants", {})
 
-    errors.extend(
-        validate_invariant_subset(
-            instance,
-            relevant_invariants,
-            expected_result,
-        )
-    )
-
-    return errors
-
-
-def validate_authority_envelope(
-    instance: dict[str, Any],
-    expected_result: str,
-) -> list[str]:
-    relevant = {
-        "SAFETY-INV-011",
-        "SAFETY-INV-012",
-        "SAFETY-INV-013",
-    }
-
-    errors = validate_v02_common(
-        instance,
-        expected_result,
-        relevant,
-    )
-
-    metadata = get_metadata(instance)
-    mutation = metadata.get("mutation")
-
-    if isinstance(mutation, dict):
-        if (
-            mutation.get("subject_self_modified") is True
-            and mutation.get(
-                "independent_authority_reissue_present"
-            ) is not True
-        ):
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-012",
-                    "authority self-expansion detected",
-                )
-            )
-
-    validity = instance.get("validity")
-    context = metadata.get("validation_context")
-
-    if (
-        isinstance(validity, dict)
-        and isinstance(context, dict)
-    ):
-        valid_until = validity.get("valid_until")
-        evaluated_at = context.get("evaluated_at")
-
-        if (
-            isinstance(valid_until, str)
-            and isinstance(evaluated_at, str)
-        ):
-            try:
-                expired = (
-                    parse_datetime(evaluated_at)
-                    >= parse_datetime(valid_until)
-                )
-
-                if (
-                    expired
-                    and instance.get("status") == "ACTIVE"
-                ):
-                    errors.extend(
-                        require_failure(
-                            instance,
-                            "SAFETY-INV-013",
-                            "expired ACTIVE authority",
-                        )
-                    )
-
-            except ValueError as exc:
-                errors.append(
-                    f"authority datetime parse error: {exc}"
-                )
-
-    return errors
-
-
-def validate_containment_receipt(
-    instance: dict[str, Any],
-    expected_result: str,
-) -> list[str]:
-    relevant = {
-        "SAFETY-INV-014",
-        "SAFETY-INV-015",
-    }
-
-    errors = validate_v02_common(
-        instance,
-        expected_result,
-        relevant,
-    )
-
-    metadata = get_metadata(instance)
-    recording = metadata.get("recording_status")
-
-    if isinstance(recording, dict):
-        if (
-            recording.get("transition_occurred") is True
-            and recording.get(
-                "receipt_created_at_transition_time"
-            ) is False
-        ):
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-014",
-                    "containment transition was not recorded contemporaneously",
-                )
-            )
-
-    evidence = instance.get("evidence_preservation")
-
-    if isinstance(evidence, dict):
-        evidence_ok = all(
-            evidence.get(flag) is True
-            for flag in [
-                "state_preserved",
-                "trace_preserved",
-                "trigger_evidence_preserved",
-            ]
-        )
-
-        if not evidence_ok:
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-015",
-                    "containment evidence preservation incomplete",
-                )
-            )
-
-    return errors
-
-
-def calculate_oldest_evidence_age_seconds(
-    instance: dict[str, Any],
-) -> int | None:
-    verified_at = instance.get("verified_at")
-
-    if not isinstance(verified_at, str):
-        return None
-
-    evidence = instance.get("evidence")
-
-    if not isinstance(evidence, dict):
-        return None
-
-    items = evidence.get("items")
-
-    if not isinstance(items, list) or not items:
-        return None
-
-    observed_times: list[datetime] = []
-
-    for item in items:
-        if not isinstance(item, dict):
-            continue
-
-        observed_at = item.get("observed_at")
-
-        if isinstance(observed_at, str):
-            observed_times.append(
-                parse_datetime(observed_at)
-            )
-
-    if not observed_times:
-        return None
-
-    age = (
-        parse_datetime(verified_at)
-        - min(observed_times)
-    ).total_seconds()
-
-    return max(0, int(age))
-
-
-def validate_verification_record(
-    instance: dict[str, Any],
-    expected_result: str,
-) -> list[str]:
-    relevant = {
-        "SAFETY-INV-016",
-        "SAFETY-INV-017",
-    }
-
-    errors = validate_v02_common(
-        instance,
-        expected_result,
-        relevant,
-    )
-
-    verifier = instance.get("verifier")
-
-    if isinstance(verifier, dict):
-        independent = (
-            verifier.get("independent_from_subject") is True
-            and verifier.get("independent_from_executor") is True
-        )
-
-        if not independent:
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-016",
-                    "verifier is not independent",
-                )
-            )
-
-    evidence = instance.get("evidence")
-
-    if isinstance(evidence, dict):
-        freshness = evidence.get("freshness")
-
-        if isinstance(freshness, dict):
-            max_age = freshness.get("max_age_seconds")
-
-            try:
-                actual_age = calculate_oldest_evidence_age_seconds(
-                    instance
-                )
-            except ValueError as exc:
-                errors.append(
-                    f"verification datetime parse error: {exc}"
-                )
-                actual_age = None
-
+    if isinstance(invariant_results, dict):
+        for invariant_id, info in invariant_results.items():
             if (
-                isinstance(max_age, int)
-                and actual_age is not None
-                and actual_age > max_age
+                isinstance(info, dict)
+                and str(info.get("result", "")).upper() == "FAIL"
             ):
-                errors.extend(
-                    require_failure(
-                        instance,
-                        "SAFETY-INV-017",
-                        "verification uses stale evidence",
-                    )
-                )
+                violations.append(invariant_id)
 
-    return errors
+    return violations
 
 
-def validate_recovery_receipt(
-    instance: dict[str, Any],
-    expected_result: str,
-) -> list[str]:
-    relevant = {
-        "SAFETY-INV-018",
-        "SAFETY-INV-019",
-        "SAFETY-INV-020",
-    }
+def validate_v02_containment(data: dict[str, Any]) -> list[str]:
+    return validate_v02_authority(data)
 
-    errors = validate_v02_common(
-        instance,
-        expected_result,
-        relevant,
-    )
 
-    source_state = instance.get("source_state")
+def validate_v02_verification(data: dict[str, Any]) -> list[str]:
+    return validate_v02_authority(data)
 
-    if not isinstance(source_state, dict):
-        errors.extend(
-            require_failure(
-                instance,
-                "SAFETY-INV-018",
-                "recovery source_state missing",
-            )
-        )
-    else:
-        source_reference = source_state.get(
-            "source_reference"
-        )
 
-        if (
-            not isinstance(source_reference, str)
-            or not source_reference.strip()
-        ):
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-018",
-                    "recovery source_reference missing",
-                )
-            )
+def validate_v02_recovery(data: dict[str, Any]) -> list[str]:
+    return validate_v02_authority(data)
 
-    authority_outcome = instance.get("authority_outcome")
 
-    if isinstance(authority_outcome, dict):
-        restored = authority_outcome.get(
-            "previous_authority_restored"
-        )
+# ---------------------------------------------------------------------------
+# v0.3 — Cross-Receipt Safety Chain
+# ---------------------------------------------------------------------------
 
-        if restored is True:
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-019",
-                    "previous authority restored",
-                )
-            )
 
-        if instance.get("final_state") == "REAUTHORIZED":
-            new_required = authority_outcome.get(
-                "new_authority_required"
-            )
-            new_reference = authority_outcome.get(
-                "new_authority_reference"
-            )
+def validate_v03_semantics(data: dict[str, Any]) -> list[str]:
+    violations: list[str] = []
 
+    metadata = data.get("metadata", {})
+    invariants = metadata.get("invariants", {})
+
+    if isinstance(invariants, dict):
+        for invariant_id, result in invariants.items():
             if (
-                restored is True
-                or new_required is not True
-                or not isinstance(new_reference, str)
-                or not new_reference.strip()
+                isinstance(result, dict)
+                and str(result.get("result", "")).upper() == "FAIL"
             ):
-                errors.extend(
-                    require_failure(
-                        instance,
-                        "SAFETY-INV-019",
-                        "REAUTHORIZED recovery lacks fresh authority",
-                    )
-                )
+                violations.append(invariant_id)
 
-    final_state = instance.get("final_state")
+    return violations
 
-    if (
-        not isinstance(final_state, str)
-        or not final_state.strip()
-    ):
-        errors.extend(
-            require_failure(
-                instance,
-                "SAFETY-INV-020",
-                "recovery final_state missing",
-            )
-        )
 
-    return errors
+# ---------------------------------------------------------------------------
+# v0.4 — Branch / Merge Safety
+# ---------------------------------------------------------------------------
 
 
-def detect_v02_schema_name(
-    instance: dict[str, Any],
-    path: Path,
-) -> str | None:
-    name = path.name.lower()
+def validate_v04_semantics(data: dict[str, Any]) -> list[str]:
+    violations: list[str] = []
 
-    if (
-        "authority-envelope" in name
-        or "authority_envelope_id" in instance
-    ):
-        return "authority-envelope"
-
-    if (
-        "containment-receipt" in name
-        or "containment_receipt_id" in instance
-    ):
-        return "containment-receipt"
-
-    if (
-        "verification-record" in name
-        or name.startswith("verification-")
-        or "verification_id" in instance
-    ):
-        return "verification-record"
-
-    if (
-        "recovery-receipt" in name
-        or name.startswith("recovery-")
-        or "recovery_receipt_id" in instance
-    ):
-        return "recovery-receipt"
-
-    return None
-
-
-V02_SEMANTIC_VALIDATORS: dict[
-    str,
-    Callable[[dict[str, Any], str], list[str]],
-] = {
-    "authority-envelope": validate_authority_envelope,
-    "containment-receipt": validate_containment_receipt,
-    "verification-record": validate_verification_record,
-    "recovery-receipt": validate_recovery_receipt,
-}
-
-
-# ============================================================================
-# v0.3 helpers
-# ============================================================================
-
-
-def get_receipts(
-    instance: dict[str, Any],
-) -> dict[str, Any]:
-    value = instance.get("receipts")
-    return value if isinstance(value, dict) else {}
-
-
-def get_receipt(
-    instance: dict[str, Any],
-    name: str,
-) -> dict[str, Any] | None:
-    value = get_receipts(instance).get(name)
-    return value if isinstance(value, dict) else None
-
-
-def receipt_id(
-    receipt: dict[str, Any] | None,
-) -> str | None:
-    if not isinstance(receipt, dict):
-        return None
-
-    value = receipt.get("receipt_id")
-    return value if isinstance(value, str) else None
-
-
-def receipt_operation_id(
-    receipt: dict[str, Any] | None,
-) -> str | None:
-    if not isinstance(receipt, dict):
-        return None
-
-    value = receipt.get("operation_id")
-    return value if isinstance(value, str) else None
-
-
-def receipt_subject_id(
-    receipt: dict[str, Any] | None,
-) -> str | None:
-    if not isinstance(receipt, dict):
-        return None
-
-    value = receipt.get("subject_id")
-    return value if isinstance(value, str) else None
-
-
-def get_chain_links(
-    instance: dict[str, Any],
-) -> list[dict[str, Any]]:
-    chain = instance.get("chain")
-
-    if not isinstance(chain, dict):
-        return []
-
-    links = chain.get("links")
-
-    if not isinstance(links, list):
-        return []
-
-    return [
-        item
-        for item in links
-        if isinstance(item, dict)
-    ]
-
-
-def has_chain_link(
-    instance: dict[str, Any],
-    source: str,
-    target: str,
-    relation: str | None = None,
-) -> bool:
-    for link in get_chain_links(instance):
-        if (
-            link.get("from") != source
-            or link.get("to") != target
-        ):
-            continue
-
-        if (
-            relation is None
-            or link.get("relation") == relation
-        ):
-            return True
-
-    return False
-
-
-def current_operation_id(
-    instance: dict[str, Any],
-) -> str | None:
-    operation = instance.get("operation")
-
-    if not isinstance(operation, dict):
-        return None
-
-    value = operation.get("operation_id")
-    return value if isinstance(value, str) else None
-
-
-def successor_operation_id(
-    instance: dict[str, Any],
-) -> str | None:
-    operation = instance.get("operation")
-
-    if not isinstance(operation, dict):
-        return None
-
-    value = operation.get("successor_operation_id")
-    return value if isinstance(value, str) else None
-
-
-def required_v03_receipt_ids(
-    instance: dict[str, Any],
-) -> set[str]:
-    result: set[str] = set()
-
-    for receipt in get_receipts(instance).values():
-        if not isinstance(receipt, dict):
-            continue
-
-        value = receipt.get("receipt_id")
-
-        if isinstance(value, str):
-            result.add(value)
-
-    return result
-
-
-# ============================================================================
-# v0.3 semantics
-# ============================================================================
-
-
-def validate_v03_semantics(
-    instance: dict[str, Any],
-    expected_result: str,
-) -> list[str]:
-    errors: list[str] = []
-
-    errors.extend(
-        validate_expected_result(
-            instance,
-            expected_result,
-        )
-    )
-
-    errors.extend(
-        require_exact_invariants(
-            instance,
-            V03_INVARIANTS,
-        )
-    )
-
-    errors.extend(
-        validate_invariant_subset(
-            instance,
-            V03_INVARIANTS,
-            expected_result,
-        )
-    )
-
-    operation_id = current_operation_id(instance)
-    successor_id = successor_operation_id(instance)
-
-    subject = instance.get("subject")
-    bundle_subject_id = None
-
-    if isinstance(subject, dict):
-        value = subject.get("subject_id")
-        if isinstance(value, str):
-            bundle_subject_id = value
-
-    authority = get_receipt(instance, "authority")
-    containment = get_receipt(instance, "containment")
-    verification = get_receipt(instance, "verification")
-    recovery = get_receipt(instance, "recovery")
-    successor_authority = get_receipt(
-        instance,
-        "successor_authority",
-    )
-
-    authority_id = receipt_id(authority)
-    containment_id = receipt_id(containment)
-    verification_id = receipt_id(verification)
-    recovery_id = receipt_id(recovery)
-
-    # 021
-    identity_mismatch = False
-
-    for receipt in [
-        authority,
-        containment,
-        verification,
-        recovery,
-    ]:
-        if receipt is None:
-            continue
-
-        receipt_op = receipt_operation_id(receipt)
-
-        if (
-            receipt_op is not None
-            and operation_id is not None
-            and receipt_op != operation_id
-        ):
-            identity_mismatch = True
-
-    if successor_authority is not None:
-        successor_receipt_op = receipt_operation_id(
-            successor_authority
-        )
-
-        if (
-            successor_id is not None
-            and successor_receipt_op is not None
-            and successor_receipt_op != successor_id
-        ):
-            identity_mismatch = True
-
-    if identity_mismatch:
-        errors.extend(
-            require_failure(
-                instance,
-                "SAFETY-INV-021",
-                "receipt identity mismatch",
-            )
-        )
-
-    # 022
-    expected_subject = bundle_subject_id or operation_id
-    discontinuity = False
-
-    for receipt in [
-        containment,
-        verification,
-        recovery,
-    ]:
-        if receipt is None:
-            continue
-
-        subject_id = receipt_subject_id(receipt)
-
-        if (
-            expected_subject is not None
-            and subject_id is not None
-            and subject_id != expected_subject
-        ):
-            discontinuity = True
-
-    if discontinuity:
-        errors.extend(
-            require_failure(
-                instance,
-                "SAFETY-INV-022",
-                "subject continuity broken",
-            )
-        )
-
-    # 023
-    authority_bound = False
-
-    if authority_id and operation_id:
-        authority_bound = (
-            receipt_operation_id(authority) == operation_id
-            and (
-                has_chain_link(
-                    instance,
-                    authority_id,
-                    operation_id,
-                    "AUTHORIZES",
-                )
-                or has_chain_link(
-                    instance,
-                    operation_id,
-                    authority_id,
-                    "ATTEMPTED_UNDER",
-                )
-            )
-        )
-
-    if not authority_bound:
-        errors.extend(
-            require_failure(
-                instance,
-                "SAFETY-INV-023",
-                "authority not bound to operation",
-            )
-        )
-
-    # 024
-    if containment is not None:
-        causal = (
-            bool(containment_id and operation_id)
-            and (
-                has_chain_link(
-                    instance,
-                    operation_id,
-                    containment_id,
-                    "TRIGGERED_CONTAINMENT",
-                )
-                or has_chain_link(
-                    instance,
-                    operation_id,
-                    containment_id,
-                    "CONTAINS",
-                )
-            )
-        )
-
-        if not causal:
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-024",
-                    "containment causal link missing",
-                )
-            )
-
-    # 025
-    if containment is not None and verification is not None:
-        valid = (
-            bool(containment_id and verification_id)
-            and has_chain_link(
-                instance,
-                containment_id,
-                verification_id,
-                "VERIFIES",
-            )
-        )
-
-        if not valid:
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-025",
-                    "verification does not reference containment",
-                )
-            )
-
-    # 026
-    if verification is not None and recovery is not None:
-        valid = (
-            bool(verification_id and recovery_id)
-            and has_chain_link(
-                instance,
-                verification_id,
-                recovery_id,
-                "JUSTIFIES_RECOVERY",
-            )
-        )
-
-        if not valid:
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-026",
-                    "recovery does not reference verification",
-                )
-            )
-
-    chain = instance.get("chain")
-
-    # 027
-    if isinstance(chain, dict):
-        complete = chain.get("complete")
-        missing = chain.get("missing_links")
-
-        broken = (
-            complete is False
-            or (
-                isinstance(missing, list)
-                and bool(missing)
-            )
-        )
-
-        if broken:
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-027",
-                    "safety chain incomplete",
-                )
-            )
-
-    # 028
-    if isinstance(chain, dict):
-        states = chain.get("declared_final_states")
-
-        conflict = (
-            chain.get("conflicting_final_states") is True
-            or (
-                isinstance(states, list)
-                and len(set(states)) > 1
-            )
-        )
-
-        if conflict:
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-028",
-                    "conflicting final states detected",
-                )
-            )
-
-    # 029
-    if isinstance(chain, dict):
-        replayed = chain.get("replayed_receipt_ids")
-
-        replay = (
-            chain.get("replay_detected") is True
-            or (
-                isinstance(replayed, list)
-                and bool(replayed)
-            )
-        )
-
-        if replay:
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-029",
-                    "receipt replay detected",
-                )
-            )
-
-    # 030
-    trace = instance.get("trace")
-
-    if isinstance(trace, dict):
-        required = required_v03_receipt_ids(instance)
-
-        reachable_raw = trace.get("reachable_receipt_ids")
-        missing_raw = trace.get("missing_receipt_ids")
-
-        reachable = (
-            set(reachable_raw)
-            if isinstance(reachable_raw, list)
-            else set()
-        )
-
-        missing = (
-            set(missing_raw)
-            if isinstance(missing_raw, list)
-            else set()
-        )
-
-        calculated_missing = required - reachable
-
-        broken = (
-            trace.get("all_receipts_reachable") is not True
-            or trace.get("trace_continuity") != "COMPLETE"
-            or bool(calculated_missing)
-            or bool(missing)
-        )
-
-        if broken:
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-030",
-                    "bundle trace continuity incomplete",
-                )
-            )
-
-    return errors
-
-
-# ============================================================================
-# v0.4 helpers
-# ============================================================================
-
-
-def get_branches(
-    instance: dict[str, Any],
-) -> list[dict[str, Any]]:
-    branches = instance.get("branches")
+    branches = data.get("branches", [])
+    parent = data.get("parent", {})
+    branch_policy = data.get("branch_policy", {})
+    merge = data.get("merge", {})
+    metadata = data.get("metadata", {})
 
     if not isinstance(branches, list):
-        return []
+        branches = []
 
-    return [
-        branch
+    # SAFETY-INV-031 — Explicit Branch Declaration
+    branch_ids = [
+        branch.get("branch_id")
         for branch in branches
         if isinstance(branch, dict)
     ]
 
-
-def get_merge(
-    instance: dict[str, Any],
-) -> dict[str, Any]:
-    merge = instance.get("merge")
-
-    return merge if isinstance(merge, dict) else {}
-
-
-def get_branch_policy(
-    instance: dict[str, Any],
-) -> dict[str, Any]:
-    policy = instance.get("branch_policy")
-
-    return policy if isinstance(policy, dict) else {}
-
-
-def get_parent(
-    instance: dict[str, Any],
-) -> dict[str, Any]:
-    parent = instance.get("parent")
-
-    return parent if isinstance(parent, dict) else {}
-
-
-def branch_id(
-    branch: dict[str, Any],
-) -> str | None:
-    value = branch.get("branch_id")
-    return value if isinstance(value, str) else None
-
-
-def branch_authority(
-    branch: dict[str, Any],
-) -> dict[str, Any]:
-    value = branch.get("authority")
-    return value if isinstance(value, dict) else {}
-
-
-def branch_verification(
-    branch: dict[str, Any],
-) -> dict[str, Any]:
-    value = branch.get("verification")
-    return value if isinstance(value, dict) else {}
-
-
-def branch_trace(
-    branch: dict[str, Any],
-) -> dict[str, Any]:
-    value = branch.get("trace")
-    return value if isinstance(value, dict) else {}
-
-
-def branch_termination(
-    branch: dict[str, Any],
-) -> dict[str, Any]:
-    value = branch.get("termination")
-    return value if isinstance(value, dict) else {}
-
-
-# ============================================================================
-# v0.4 semantics
-# ============================================================================
-
-
-def validate_v04_semantics(
-    instance: dict[str, Any],
-    expected_result: str,
-) -> list[str]:
-    errors: list[str] = []
-
-    errors.extend(
-        validate_expected_result(
-            instance,
-            expected_result,
-        )
-    )
-
-    errors.extend(
-        require_exact_invariants(
-            instance,
-            V04_INVARIANTS,
-        )
-    )
-
-    errors.extend(
-        validate_invariant_subset(
-            instance,
-            V04_INVARIANTS,
-            expected_result,
-        )
-    )
-
-    branches = get_branches(instance)
-    parent = get_parent(instance)
-    policy = get_branch_policy(instance)
-    merge = get_merge(instance)
-
-    # ---------------------------------------------------------------------
-    # SAFETY-INV-031 — Explicit Branch Declaration
-    # ---------------------------------------------------------------------
-
-    branch_ids = [
-        branch_id(branch)
-        for branch in branches
-    ]
-
-    missing_branch_identity = any(
-        value is None or not value.strip()
-        for value in branch_ids
-    )
-
-    duplicate_branch_identity = (
-        len(
-            [
-                value
-                for value in branch_ids
-                if isinstance(value, str)
-            ]
-        )
-        != len(
-            set(
-                value
-                for value in branch_ids
-                if isinstance(value, str)
-            )
-        )
-    )
-
     if (
-        missing_branch_identity
-        or duplicate_branch_identity
+        not branch_ids
+        or any(not branch_id for branch_id in branch_ids)
+        or len(branch_ids) != len(set(branch_ids))
     ):
-        errors.extend(
-            require_failure(
-                instance,
-                "SAFETY-INV-031",
-                "branch identity missing or duplicated",
-            )
-        )
+        violations.append("SAFETY-INV-031")
 
-    # ---------------------------------------------------------------------
     # SAFETY-INV-032 — Branch Authority Isolation
-    # ---------------------------------------------------------------------
-
     authority_refs: list[str] = []
-    authority_isolation_failure = False
+    inv032_failed = False
 
     for branch in branches:
-        authority = branch_authority(branch)
+        if not isinstance(branch, dict):
+            continue
 
-        reference = authority.get("authority_reference")
+        authority = branch.get("authority", {})
 
-        if isinstance(reference, str):
-            authority_refs.append(reference)
+        if not isinstance(authority, dict):
+            inv032_failed = True
+            continue
 
-        if (
-            authority.get("shared_with_siblings") is True
-            or authority.get("independent_scope") is not True
-        ):
-            authority_isolation_failure = True
+        if authority.get("shared_with_siblings") is True:
+            inv032_failed = True
 
-    if len(authority_refs) != len(set(authority_refs)):
-        authority_isolation_failure = True
+        if authority.get("independent_scope") is not True:
+            inv032_failed = True
 
-    if authority_isolation_failure:
-        errors.extend(
-            require_failure(
-                instance,
-                "SAFETY-INV-032",
-                "branch authority isolation violated",
-            )
-        )
+        ref = authority.get("authority_reference")
+        if isinstance(ref, str) and ref:
+            authority_refs.append(ref)
 
-    # ---------------------------------------------------------------------
+    if not unique_non_null(authority_refs):
+        inv032_failed = True
+
+    if inv032_failed:
+        violations.append("SAFETY-INV-032")
+
     # SAFETY-INV-033 — No Implicit Successor Inheritance
-    # ---------------------------------------------------------------------
+    parent_authority = (
+        parent.get("source_authority_id")
+        if isinstance(parent, dict)
+        else None
+    )
 
-    parent_authority = parent.get("source_authority_id")
-    inheritance_failure = False
+    inv033_failed = False
 
     for branch in branches:
-        authority = branch_authority(branch)
+        if not isinstance(branch, dict):
+            continue
 
-        reference = authority.get("authority_reference")
+        authority = branch.get("authority", {})
+
+        if not isinstance(authority, dict):
+            continue
 
         if authority.get("inherited_from_parent") is True:
-            inheritance_failure = True
+            inv033_failed = True
 
         if (
-            isinstance(parent_authority, str)
-            and isinstance(reference, str)
-            and reference == parent_authority
+            parent_authority
+            and authority.get("authority_reference") == parent_authority
         ):
-            inheritance_failure = True
+            inv033_failed = True
 
-    if inheritance_failure:
-        errors.extend(
-            require_failure(
-                instance,
-                "SAFETY-INV-033",
-                "parent authority implicitly inherited",
-            )
-        )
+    if inv033_failed:
+        violations.append("SAFETY-INV-033")
 
-    # ---------------------------------------------------------------------
     # SAFETY-INV-034 — Branch-Specific Verification
-    # ---------------------------------------------------------------------
-
     verification_refs: list[str] = []
-    verification_failure = False
+    inv034_failed = False
 
     for branch in branches:
-        verification = branch_verification(branch)
+        if not isinstance(branch, dict):
+            continue
 
-        reference = verification.get("verification_reference")
+        verification = branch.get("verification", {})
 
-        if isinstance(reference, str):
-            verification_refs.append(reference)
+        if not isinstance(verification, dict):
+            inv034_failed = True
+            continue
 
         if verification.get("branch_specific") is not True:
-            verification_failure = True
+            inv034_failed = True
 
-    if (
-        verification_refs
-        and len(verification_refs)
-        != len(set(verification_refs))
-    ):
-        verification_failure = True
+        ref = verification.get("verification_reference")
+        if isinstance(ref, str) and ref:
+            verification_refs.append(ref)
 
-    if verification_failure:
-        errors.extend(
-            require_failure(
-                instance,
-                "SAFETY-INV-034",
-                "verification is not branch-specific",
-            )
-        )
+    if not unique_non_null(verification_refs):
+        inv034_failed = True
 
-    # ---------------------------------------------------------------------
+    if inv034_failed:
+        violations.append("SAFETY-INV-034")
+
     # SAFETY-INV-035 — Branch-Specific Trace
-    # ---------------------------------------------------------------------
-
     trace_ids: list[str] = []
-    trace_failure = False
+    inv035_failed = False
 
     for branch in branches:
-        trace = branch_trace(branch)
+        if not isinstance(branch, dict):
+            continue
 
-        trace_id = trace.get("trace_id")
+        trace = branch.get("trace", {})
 
-        if isinstance(trace_id, str):
-            trace_ids.append(trace_id)
+        if not isinstance(trace, dict):
+            inv035_failed = True
+            continue
 
         if trace.get("independently_reconstructable") is not True:
-            trace_failure = True
+            inv035_failed = True
 
-    if (
-        trace_ids
-        and len(trace_ids) != len(set(trace_ids))
-    ):
-        trace_failure = True
+        trace_id = trace.get("trace_id")
+        if isinstance(trace_id, str) and trace_id:
+            trace_ids.append(trace_id)
 
-    if trace_failure:
-        errors.extend(
-            require_failure(
-                instance,
-                "SAFETY-INV-035",
-                "branch-specific trace requirement violated",
-            )
-        )
+    if not unique_non_null(trace_ids):
+        inv035_failed = True
 
-    # ---------------------------------------------------------------------
+    if inv035_failed:
+        violations.append("SAFETY-INV-035")
+
     # SAFETY-INV-036 — Merge Requires Compatibility Check
-    # ---------------------------------------------------------------------
+    merge_requested = (
+        merge.get("requested") is True
+        if isinstance(merge, dict)
+        else False
+    )
 
-    merge_requested = merge.get("requested") is True
-
-    compatibility = merge.get("compatibility_check")
-
-    if not isinstance(compatibility, dict):
-        compatibility = {}
-
-    compatibility_dimensions = [
-        "authority_compatible",
-        "state_compatible",
-        "blockers_compatible",
-        "verification_compatible",
-        "trace_compatible",
-    ]
+    compatibility = (
+        merge.get("compatibility_check", {})
+        if isinstance(merge, dict)
+        else {}
+    )
 
     if merge_requested:
-        compatibility_failure = (
-            compatibility.get("performed") is not True
+        dimensions = (
+            "authority_compatible",
+            "state_compatible",
+            "blockers_compatible",
+            "verification_compatible",
+            "trace_compatible",
         )
 
-        if compatibility.get("performed") is True:
-            if any(
-                compatibility.get(key) is None
-                for key in compatibility_dimensions
+        if not isinstance(compatibility, dict):
+            violations.append("SAFETY-INV-036")
+        else:
+            if compatibility.get("performed") is not True:
+                violations.append("SAFETY-INV-036")
+            elif any(
+                compatibility.get(dimension) is None
+                for dimension in dimensions
             ):
-                compatibility_failure = True
+                violations.append("SAFETY-INV-036")
 
-        if compatibility_failure:
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-036",
-                    "merge compatibility check missing or incomplete",
-                )
-            )
-
-    # ---------------------------------------------------------------------
     # SAFETY-INV-037 — No Conflicting Authority Merge
-    # ---------------------------------------------------------------------
+    authority_decision = (
+        merge.get("authority_decision", {})
+        if isinstance(merge, dict)
+        else {}
+    )
 
-    authority_decision = merge.get("authority_decision")
+    merge_outcome = (
+        merge.get("outcome", {})
+        if isinstance(merge, dict)
+        else {}
+    )
 
-    if not isinstance(authority_decision, dict):
-        authority_decision = {}
+    outcome_state = (
+        merge_outcome.get("state")
+        if isinstance(merge_outcome, dict)
+        else None
+    )
 
-    outcome = merge.get("outcome")
+    inv037_failed = False
 
-    if not isinstance(outcome, dict):
-        outcome = {}
-
-    if merge_requested:
-        authority_merge_failure = False
-
+    if outcome_state == "MERGED":
         if (
-            compatibility.get("authority_compatible") is False
-            and outcome.get("state") == "MERGED"
+            isinstance(compatibility, dict)
+            and compatibility.get("authority_compatible") is False
         ):
-            authority_merge_failure = True
+            inv037_failed = True
 
         if (
-            authority_decision.get(
+            isinstance(authority_decision, dict)
+            and authority_decision.get(
                 "authority_aggregated_from_branches"
             )
             is True
         ):
-            authority_merge_failure = True
+            inv037_failed = True
 
-        if (
-            outcome.get("state") == "MERGED"
-            and authority_decision.get(
-                "new_authority_required"
-            )
-            is True
-        ):
-            new_authority = authority_decision.get(
-                "new_authority_reference"
-            )
+        if isinstance(authority_decision, dict):
+            if authority_decision.get("new_authority_required") is True:
+                if not authority_decision.get("new_authority_reference"):
+                    inv037_failed = True
 
-            if (
-                not isinstance(new_authority, str)
-                or not new_authority.strip()
-            ):
-                authority_merge_failure = True
+    if inv037_failed:
+        violations.append("SAFETY-INV-037")
 
-        if authority_merge_failure:
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-037",
-                    "conflicting or aggregated authority merge detected",
-                )
-            )
-
-    # ---------------------------------------------------------------------
     # SAFETY-INV-038 — Carried Blockers Must Survive Branching
-    # ---------------------------------------------------------------------
+    parent_blockers = metadata.get("parent_blockers", [])
 
-    metadata = get_metadata(instance)
-
-    parent_blockers = metadata.get("parent_blockers")
-
-    blocker_failure = False
+    inv038_failed = False
 
     if isinstance(parent_blockers, list):
-        branches_by_id = {
-            branch_id(branch): branch
-            for branch in branches
-            if branch_id(branch)
-        }
-
-        for parent_blocker in parent_blockers:
-            if not isinstance(parent_blocker, dict):
+        for blocker in parent_blockers:
+            if not isinstance(blocker, dict):
                 continue
 
-            blocker_identifier = parent_blocker.get("blocker_id")
-
-            if not isinstance(blocker_identifier, str):
+            if blocker.get("status") != "OPEN":
                 continue
 
-            if parent_blocker.get("status") != "OPEN":
-                continue
-
-            applicable = parent_blocker.get(
-                "applies_to_branch_ids"
+            blocker_id = blocker.get("blocker_id")
+            applies_to_branch_ids = blocker.get(
+                "applies_to_branch_ids",
+                branch_ids,
             )
 
-            if not isinstance(applicable, list):
-                continue
+            if not isinstance(applies_to_branch_ids, list):
+                applies_to_branch_ids = branch_ids
 
-            for applicable_branch_id in applicable:
-                branch = branches_by_id.get(
-                    applicable_branch_id
+            for branch_id in applies_to_branch_ids:
+                matching_branch = next(
+                    (
+                        branch
+                        for branch in branches
+                        if isinstance(branch, dict)
+                        and branch.get("branch_id") == branch_id
+                    ),
+                    None,
                 )
 
-                if branch is None:
-                    blocker_failure = True
+                if not matching_branch:
+                    inv038_failed = True
                     continue
 
-                blockers = branch.get("blockers")
+                blockers = matching_branch.get("blockers", [])
 
-                if not isinstance(blockers, list):
-                    blocker_failure = True
+                matching_blocker = next(
+                    (
+                        item
+                        for item in blockers
+                        if isinstance(item, dict)
+                        and item.get("blocker_id") == blocker_id
+                    ),
+                    None,
+                )
+
+                if not matching_blocker:
+                    inv038_failed = True
                     continue
 
-                matches = [
-                    blocker
-                    for blocker in blockers
-                    if (
-                        isinstance(blocker, dict)
-                        and blocker.get("blocker_id")
-                        == blocker_identifier
-                    )
-                ]
+                if matching_blocker.get("carried_forward") is not True:
+                    inv038_failed = True
 
-                if not matches:
-                    blocker_failure = True
-                    continue
+                if matching_blocker.get("applies_to_branch") is not True:
+                    inv038_failed = True
 
-                if not any(
-                    blocker.get("carried_forward") is True
-                    and blocker.get("applies_to_branch") is True
-                    for blocker in matches
-                ):
-                    blocker_failure = True
+    if inv038_failed:
+        violations.append("SAFETY-INV-038")
 
-    if blocker_failure:
-        errors.extend(
-            require_failure(
-                instance,
-                "SAFETY-INV-038",
-                "open blocker was not carried to affected branch",
-            )
-        )
-
-    # ---------------------------------------------------------------------
     # SAFETY-INV-039 — Branch Termination Must Be Local
-    # ---------------------------------------------------------------------
-
-    termination_failure = False
+    inv039_failed = False
 
     for branch in branches:
-        termination = branch_termination(branch)
+        if not isinstance(branch, dict):
+            continue
 
-        if not termination:
+        termination = branch.get("termination", {})
+
+        if not isinstance(termination, dict):
             continue
 
         if termination.get("terminated") is True:
-            affected = termination.get(
-                "affected_sibling_branch_ids"
-            )
+            if termination.get("local_only") is not True:
+                inv039_failed = True
 
-            if (
-                termination.get("local_only") is not True
-                or (
-                    isinstance(affected, list)
-                    and bool(affected)
-                )
-            ):
-                termination_failure = True
+            affected = termination.get("affected_sibling_branch_ids", [])
+            if affected:
+                inv039_failed = True
 
-    propagation = metadata.get(
-        "termination_propagation_failure"
+    termination_failure = metadata.get(
+        "termination_propagation_failure",
+        {},
     )
 
-    if isinstance(propagation, dict):
-        if (
-            propagation.get(
-                "termination_locality_preserved"
-            )
-            is False
-        ):
-            termination_failure = True
+    if (
+        isinstance(termination_failure, dict)
+        and termination_failure.get("locality_preserved") is False
+    ):
+        inv039_failed = True
 
-    if termination_failure:
-        errors.extend(
-            require_failure(
-                instance,
-                "SAFETY-INV-039",
-                "branch termination propagated beyond local branch",
-            )
-        )
+    if inv039_failed:
+        violations.append("SAFETY-INV-039")
 
-    # ---------------------------------------------------------------------
     # SAFETY-INV-040 — Merge Outcome Must Be Explicit
-    # ---------------------------------------------------------------------
-
     if merge_requested:
-        state = outcome.get("state")
-
-        allowed_states = {
+        allowed_outcomes = {
             "MERGED",
             "RESTRICTED",
             "HELD",
@@ -1926,605 +547,1104 @@ def validate_v04_semantics(
             "TERMINATED",
         }
 
-        if (
-            not isinstance(state, str)
-            or state not in allowed_states
-        ):
-            errors.extend(
-                require_failure(
-                    instance,
-                    "SAFETY-INV-040",
-                    "merge outcome is missing or non-authoritative",
+        if outcome_state not in allowed_outcomes:
+            violations.append("SAFETY-INV-040")
+
+    # branch_policy consistency
+    if isinstance(branch_policy, dict):
+        policy_checks = (
+            (
+                "explicit_branch_ids_required",
+                True,
+            ),
+            (
+                "authority_isolation_required",
+                True,
+            ),
+            (
+                "implicit_authority_inheritance_allowed",
+                False,
+            ),
+            (
+                "branch_specific_verification_required",
+                True,
+            ),
+            (
+                "branch_specific_trace_required",
+                True,
+            ),
+            (
+                "carry_open_blockers_required",
+                True,
+            ),
+        )
+
+        for key, expected in policy_checks:
+            if key in branch_policy and branch_policy.get(key) != expected:
+                fail(
+                    f"v0.4 branch_policy.{key} must be "
+                    f"{expected!r}"
                 )
-            )
 
-    # ---------------------------------------------------------------------
-    # Bundle-level consistency
-    # ---------------------------------------------------------------------
+    return sorted(set(violations))
 
-    bundle_status = instance.get("bundle_status")
+
+# ---------------------------------------------------------------------------
+# v0.5 — Cross-Domain / Federation Safety
+# ---------------------------------------------------------------------------
+
+
+def validate_v05_semantics(data: dict[str, Any]) -> list[str]:
+    violations: list[str] = []
+
+    source = data.get("source_domain", {})
+    destination = data.get("destination", {})
+    provenance = data.get("provenance", {})
+    validity = data.get("validity", {})
+    propagation = data.get("propagation", {})
+    replay = data.get("replay_protection", {})
+    recommended = data.get("recommended_response", {})
+    local = data.get("local_processing", {})
+    trace = data.get("trace", {})
+    federation_decision = data.get("federation_decision")
+    metadata = data.get("metadata", {})
+
+    # ------------------------------------------------------------------
+    # SAFETY-INV-041 — Explicit Domain Boundary
+    # ------------------------------------------------------------------
+
+    inv041_failed = False
+
+    if not isinstance(source, dict):
+        inv041_failed = True
+    else:
+        required_source_boundary_fields = (
+            "domain_id",
+            "authority_boundary_id",
+            "policy_boundary_id",
+            "execution_boundary_id",
+        )
+
+        for field in required_source_boundary_fields:
+            value = source.get(field)
+            if not isinstance(value, str) or not value.strip():
+                inv041_failed = True
+
+    receiver_domain_id = (
+        local.get("receiver_domain_id")
+        if isinstance(local, dict)
+        else None
+    )
+
+    source_domain_id = (
+        source.get("domain_id")
+        if isinstance(source, dict)
+        else None
+    )
+
+    if not receiver_domain_id:
+        inv041_failed = True
 
     if (
-        expected_result == "PASS"
-        and bundle_status == "INVALID"
+        source_domain_id
+        and receiver_domain_id
+        and source_domain_id == receiver_domain_id
     ):
-        errors.append(
-            "PASS v0.4 fixture cannot have bundle_status INVALID"
+        inv041_failed = True
+
+    boundary_failure = metadata.get("domain_boundary_failure", {})
+
+    if isinstance(boundary_failure, dict):
+        if boundary_failure.get("authority_transition_determinable") is False:
+            inv041_failed = True
+
+    if inv041_failed:
+        violations.append("SAFETY-INV-041")
+
+    # ------------------------------------------------------------------
+    # SAFETY-INV-042 — No Automatic Cross-Domain Authority Propagation
+    # ------------------------------------------------------------------
+
+    inv042_failed = False
+
+    source_authority_ref = (
+        provenance.get("source_authority_reference")
+        if isinstance(provenance, dict)
+        else None
+    )
+
+    local_authority = (
+        local.get("local_authority", {})
+        if isinstance(local, dict)
+        else {}
+    )
+
+    if isinstance(local_authority, dict):
+        if local_authority.get("remote_authority_accepted") is True:
+            inv042_failed = True
+
+        local_authority_ref = local_authority.get("authority_reference")
+
+        if (
+            source_authority_ref
+            and local_authority_ref
+            and source_authority_ref == local_authority_ref
+        ):
+            inv042_failed = True
+
+    authority_failure = metadata.get(
+        "cross_domain_authority_failure",
+        {},
+    )
+
+    if isinstance(authority_failure, dict):
+        if authority_failure.get("cross_domain_authority_propagated") is True:
+            inv042_failed = True
+
+    if inv042_failed:
+        violations.append("SAFETY-INV-042")
+
+    # ------------------------------------------------------------------
+    # SAFETY-INV-043 — Safety Signal Provenance Required
+    # ------------------------------------------------------------------
+
+    inv043_failed = False
+
+    if not isinstance(provenance, dict):
+        inv043_failed = True
+    else:
+        provenance_fields = (
+            "origin_event_id",
+            "origin_trace_id",
+            "origin_domain_id",
+            "issued_at",
+            "integrity_status",
         )
 
+        for field in provenance_fields:
+            value = provenance.get(field)
+            if value is None or value == "":
+                inv043_failed = True
+
+        if (
+            source_domain_id
+            and provenance.get("origin_domain_id")
+            and provenance.get("origin_domain_id") != source_domain_id
+        ):
+            inv043_failed = True
+
+    if isinstance(trace, dict):
+        if trace.get("origin_trace_preserved") is False:
+            inv043_failed = True
+
+    provenance_failure = metadata.get("provenance_failure", {})
+
+    if isinstance(provenance_failure, dict):
+        if provenance_failure.get("provenance_reconstructable") is False:
+            inv043_failed = True
+
+    if inv043_failed:
+        violations.append("SAFETY-INV-043")
+
+    # ------------------------------------------------------------------
+    # SAFETY-INV-044 — Cross-Domain Signal Must Be Interpreted Locally
+    # ------------------------------------------------------------------
+
+    inv044_failed = False
+
+    if not isinstance(local, dict):
+        inv044_failed = True
+    else:
+        if local.get("interpreted_locally") is not True:
+            inv044_failed = True
+
+        local_decision = local.get("local_decision")
+
+        actionable_decisions = {
+            "LOCAL_HOLD",
+            "LOCAL_RESTRICT",
+            "LOCAL_ISOLATE",
+            "LOCAL_RECOVER",
+            "LOCAL_REAUTHORIZE",
+            "LOCAL_TERMINATE",
+            "ESCALATE_TO_FEDERATION",
+        }
+
+        if local_decision in actionable_decisions:
+            interpretation = local.get("interpretation")
+
+            if not isinstance(interpretation, str) or not interpretation.strip():
+                inv044_failed = True
+
+    interpretation_failure = metadata.get(
+        "local_interpretation_failure",
+        {},
+    )
+
+    if isinstance(interpretation_failure, dict):
+        if (
+            interpretation_failure.get(
+                "direct_recommendation_to_decision_transition"
+            )
+            is True
+        ):
+            inv044_failed = True
+
+    if inv044_failed:
+        violations.append("SAFETY-INV-044")
+
+    # ------------------------------------------------------------------
+    # SAFETY-INV-045 — Remote Containment Requires Local Authorization
+    # ------------------------------------------------------------------
+
+    inv045_failed = False
+
+    local_decision = (
+        local.get("local_decision")
+        if isinstance(local, dict)
+        else None
+    )
+
+    containment_decisions = {
+        "LOCAL_HOLD",
+        "LOCAL_RESTRICT",
+        "LOCAL_ISOLATE",
+        "LOCAL_TERMINATE",
+    }
+
+    if local_decision in containment_decisions:
+        if not isinstance(local_authority, dict):
+            inv045_failed = True
+        else:
+            granted = local_authority.get("local_authority_granted")
+            authority_ref = local_authority.get("authority_reference")
+            preauth_ref = local_authority.get(
+                "preauthorized_federation_rule_reference"
+            )
+
+            if granted is not True and not preauth_ref:
+                inv045_failed = True
+
+            if granted is True and not authority_ref and not preauth_ref:
+                inv045_failed = True
+
+    containment_failure = metadata.get(
+        "remote_containment_failure",
+        {},
+    )
+
+    if isinstance(containment_failure, dict):
+        if (
+            containment_failure.get(
+                "containment_executed_without_local_authority"
+            )
+            is True
+        ):
+            inv045_failed = True
+
+    if inv045_failed:
+        violations.append("SAFETY-INV-045")
+
+    # ------------------------------------------------------------------
+    # SAFETY-INV-046 — Shared Threat Does Not Imply Shared Authority
+    # ------------------------------------------------------------------
+
+    inv046_failed = False
+
+    if isinstance(federation_decision, dict):
+        scope = federation_decision.get("scope", {})
+
+        if isinstance(scope, dict):
+            if scope.get("shared_execution_authority") is True:
+                inv046_failed = True
+
+            if scope.get("authority_model") == "SHARED_AUTHORITY":
+                inv046_failed = True
+
+        federation_authority_ref = federation_decision.get(
+            "approving_authority_reference"
+        )
+
+        if (
+            source_authority_ref
+            and federation_authority_ref
+            and federation_authority_ref == source_authority_ref
+        ):
+            affected_domains = []
+
+            if isinstance(scope, dict):
+                value = scope.get("affected_domains", [])
+                if isinstance(value, list):
+                    affected_domains = value
+
+            if len(affected_domains) >= 1:
+                inv046_failed = True
+
+    shared_authority_failure = metadata.get(
+        "shared_threat_authority_failure",
+        {},
+    )
+
+    if isinstance(shared_authority_failure, dict):
+        if shared_authority_failure.get(
+            "shared_execution_authority_created"
+        ) is True:
+            inv046_failed = True
+
+    if inv046_failed:
+        violations.append("SAFETY-INV-046")
+
+    # ------------------------------------------------------------------
+    # SAFETY-INV-047 — Propagation Scope Must Be Bounded
+    # ------------------------------------------------------------------
+
+    inv047_failed = False
+
+    if not isinstance(propagation, dict):
+        inv047_failed = True
+    else:
+        if propagation.get("scope_bounded") is not True:
+            inv047_failed = True
+
+        max_hops = propagation.get("max_hops")
+        current_hop = propagation.get("current_hop")
+        max_relays = propagation.get("maximum_relay_count")
+
+        if not isinstance(max_hops, int) or max_hops < 0:
+            inv047_failed = True
+
+        if not isinstance(current_hop, int) or current_hop < 0:
+            inv047_failed = True
+
+        if (
+            isinstance(max_hops, int)
+            and isinstance(current_hop, int)
+            and current_hop > max_hops
+        ):
+            inv047_failed = True
+
+        if max_relays is not None:
+            if not isinstance(max_relays, int) or max_relays < 0:
+                inv047_failed = True
+
+        if propagation.get("forwarding_allowed") is False:
+            if max_hops != 0:
+                inv047_failed = True
+
+    if not isinstance(validity, dict):
+        inv047_failed = True
+    else:
+        valid_from = normalize_datetime(
+            parse_datetime(validity.get("valid_from"))
+        )
+        expires_at = normalize_datetime(
+            parse_datetime(validity.get("expires_at"))
+        )
+        ttl = validity.get("ttl_seconds")
+
+        if valid_from is None or expires_at is None:
+            inv047_failed = True
+        elif expires_at <= valid_from:
+            inv047_failed = True
+
+        if not isinstance(ttl, int) or ttl <= 0:
+            inv047_failed = True
+
+    if isinstance(destination, dict):
+        target_mode = destination.get("target_mode")
+
+        if target_mode == "SPECIFIC_DOMAINS":
+            targets = destination.get("target_domain_ids", [])
+
+            if not isinstance(targets, list) or not targets:
+                inv047_failed = True
+
+        elif target_mode == "DOMAIN_CLASS":
+            if not destination.get("target_domain_class"):
+                inv047_failed = True
+
+        elif target_mode == "FEDERATION":
+            if not destination.get("federation_id"):
+                inv047_failed = True
+
+        else:
+            inv047_failed = True
+    else:
+        inv047_failed = True
+
+    propagation_failure = metadata.get(
+        "propagation_scope_failure",
+        {},
+    )
+
+    if isinstance(propagation_failure, dict):
+        if propagation_failure.get("unbounded_forwarding_possible") is True:
+            inv047_failed = True
+
+    if inv047_failed:
+        violations.append("SAFETY-INV-047")
+
+    # ------------------------------------------------------------------
+    # SAFETY-INV-048 — Cross-Domain Replay Must Be Rejected
+    # ------------------------------------------------------------------
+
+    inv048_failed = False
+
+    if not isinstance(replay, dict):
+        inv048_failed = True
+    else:
+        replay_detected = replay.get("replay_detected")
+        previously_consumed = replay.get("previously_consumed")
+        fresh = replay.get("fresh_for_current_context")
+        context_substitution = replay.get(
+            "context_substitution_detected"
+        )
+
+        signal_status = data.get("signal_status")
+
+        replay_condition = (
+            replay_detected is True
+            or context_substitution is True
+            or fresh is False
+        )
+
+        if replay_condition and signal_status not in {
+            "REJECTED",
+            "INVALID",
+        }:
+            inv048_failed = True
+
+        if previously_consumed is True and fresh is True:
+            inv048_failed = True
+
+    replay_failure = metadata.get("replay_failure", {})
+
+    if isinstance(replay_failure, dict):
+        if replay_failure.get("treated_as_fresh_evidence") is True:
+            inv048_failed = True
+
+    # Fixture-specific semantic failure:
+    # the signal is correctly marked INVALID, but metadata says a local
+    # action was nevertheless selected from the replayed signal.
     if (
-        expected_result == "FAIL"
-        and bundle_status != "INVALID"
+        isinstance(replay_failure, dict)
+        and replay_failure.get("context_substitution_detected") is True
+        and local_decision
+        in {
+            "LOCAL_HOLD",
+            "LOCAL_RESTRICT",
+            "LOCAL_ISOLATE",
+            "LOCAL_RECOVER",
+            "LOCAL_REAUTHORIZE",
+            "LOCAL_TERMINATE",
+        }
     ):
-        errors.append(
-            "FAIL v0.4 fixture should use bundle_status INVALID"
+        inv048_failed = True
+
+    if inv048_failed:
+        violations.append("SAFETY-INV-048")
+
+    # ------------------------------------------------------------------
+    # SAFETY-INV-049 — Federated Recovery Must Preserve Domain Autonomy
+    # ------------------------------------------------------------------
+
+    inv049_failed = False
+
+    if data.get("signal_type") == "RECOVERY_NOTICE":
+        recovery_failure = metadata.get(
+            "federated_recovery_failure",
+            {},
         )
 
-    # Policy consistency
-    if policy:
-        if (
-            policy.get("explicit_branch_ids_required")
-            is not True
+        if isinstance(recovery_failure, dict):
+            if recovery_failure.get("receiver_auto_resumed") is True:
+                inv049_failed = True
+
+            if (
+                recovery_failure.get(
+                    "remote_recovery_treated_as_local_recovery"
+                )
+                is True
+            ):
+                inv049_failed = True
+
+            if recovery_failure.get("old_local_authority_reused") is True:
+                inv049_failed = True
+
+            if (
+                recovery_failure.get(
+                    "receiver_local_verification_performed"
+                )
+                is False
+                and local_decision
+                in {
+                    "LOCAL_RECOVER",
+                    "LOCAL_REAUTHORIZE",
+                }
+            ):
+                inv049_failed = True
+
+    if local_decision in {
+        "LOCAL_RECOVER",
+        "LOCAL_REAUTHORIZE",
+    }:
+        recovery_failure = metadata.get(
+            "federated_recovery_failure",
+            {},
+        )
+
+        if isinstance(recovery_failure, dict):
+            if recovery_failure.get("fresh_local_authority_issued") is False:
+                inv049_failed = True
+
+            if recovery_failure.get("receiver_blockers_rechecked") is False:
+                inv049_failed = True
+
+    if inv049_failed:
+        violations.append("SAFETY-INV-049")
+
+    # ------------------------------------------------------------------
+    # SAFETY-INV-050 — Network-Wide Action Requires Explicit
+    # Federation Decision
+    # ------------------------------------------------------------------
+
+    inv050_failed = False
+
+    if local_decision == "ESCALATE_TO_FEDERATION":
+        network_action_failure = metadata.get(
+            "network_action_failure",
+            {},
+        )
+
+        network_action_requested = False
+
+        if isinstance(network_action_failure, dict):
+            network_action_requested = (
+                network_action_failure.get(
+                    "network_wide_action_requested"
+                )
+                is True
+            )
+
+        if network_action_requested and not isinstance(
+            federation_decision,
+            dict,
         ):
-            errors.append(
-                "branch policy must require explicit branch IDs"
+            inv050_failed = True
+
+    network_action_failure = metadata.get(
+        "network_action_failure",
+        {},
+    )
+
+    if isinstance(network_action_failure, dict):
+        if (
+            network_action_failure.get(
+                "network_action_attempted_without_federation_decision"
             )
+            is True
+        ):
+            inv050_failed = True
+
+    if isinstance(federation_decision, dict):
+        participating = federation_decision.get(
+            "participating_domain_ids",
+            []
+        )
 
         if (
-            policy.get("authority_isolation_required")
-            is not True
+            not isinstance(participating, list)
+            or len(set(participating)) < 2
         ):
-            errors.append(
-                "branch policy must require authority isolation"
-            )
+            inv050_failed = True
 
-        if (
-            policy.get(
-                "implicit_authority_inheritance_allowed"
-            )
-            is not False
-        ):
-            errors.append(
-                "branch policy must forbid implicit authority inheritance"
-            )
+        if not federation_decision.get("decision_id"):
+            inv050_failed = True
 
-        if (
-            policy.get(
-                "branch_specific_verification_required"
-            )
-            is not True
-        ):
-            errors.append(
-                "branch policy must require branch-specific verification"
-            )
+        if not federation_decision.get("federation_id"):
+            inv050_failed = True
 
-        if (
-            policy.get("branch_specific_trace_required")
-            is not True
-        ):
-            errors.append(
-                "branch policy must require branch-specific trace"
-            )
+        if not federation_decision.get("trace_reference"):
+            inv050_failed = True
 
-        if (
-            policy.get("carry_open_blockers_required")
-            is not True
-        ):
-            errors.append(
-                "branch policy must require open blocker carry-forward"
-            )
+    if inv050_failed:
+        violations.append("SAFETY-INV-050")
 
-    return errors
+    return sorted(set(violations))
 
 
-# ============================================================================
-# File validation
-# ============================================================================
+# ---------------------------------------------------------------------------
+# Version discovery
+# ---------------------------------------------------------------------------
 
 
-def validate_v01_file(
+def classify_example(path: Path) -> tuple[str, str]:
+    relative = path.relative_to(ROOT).as_posix()
+
+    if relative.startswith("examples/v0.5/"):
+        return "v0.5", "v0.5"
+
+    if relative.startswith("examples/v0.4/"):
+        return "v0.4", "v0.4"
+
+    if relative.startswith("examples/v0.3/"):
+        return "v0.3", "v0.3"
+
+    if relative.startswith("examples/v0.2/"):
+        filename = path.name
+
+        if "authority-envelope" in filename:
+            return "v0.2", "v0.2-authority"
+
+        if "containment" in filename:
+            return "v0.2", "v0.2-containment"
+
+        if "verification" in filename:
+            return "v0.2", "v0.2-verification"
+
+        if "recovery" in filename:
+            return "v0.2", "v0.2-recovery"
+
+        fail(
+            f"Unable to determine v0.2 schema for "
+            f"{relative}"
+        )
+
+    if relative.startswith("examples/pass/") or relative.startswith(
+        "examples/fail/"
+    ):
+        return "v0.1", "v0.1"
+
+    fail(f"Unknown example path: {relative}")
+
+
+def semantic_violations(
+    version: str,
+    schema_key: str,
+    data: dict[str, Any],
+) -> list[str]:
+    if version == "v0.1":
+        return validate_v01_semantics(data)
+
+    if version == "v0.2":
+        if schema_key == "v0.2-authority":
+            return validate_v02_authority(data)
+
+        if schema_key == "v0.2-containment":
+            return validate_v02_containment(data)
+
+        if schema_key == "v0.2-verification":
+            return validate_v02_verification(data)
+
+        if schema_key == "v0.2-recovery":
+            return validate_v02_recovery(data)
+
+    if version == "v0.3":
+        return validate_v03_semantics(data)
+
+    if version == "v0.4":
+        return validate_v04_semantics(data)
+
+    if version == "v0.5":
+        return validate_v05_semantics(data)
+
+    fail(f"No semantic validator for version: {version}")
+
+
+# ---------------------------------------------------------------------------
+# Fixture validation
+# ---------------------------------------------------------------------------
+
+
+def validate_example(
     path: Path,
-    validator: Draft202012Validator,
-) -> ValidationResult:
-    expected = get_expected_result_from_path(path)
+    schemas: dict[str, dict[str, Any]],
+) -> tuple[str, str, list[str], list[str]]:
+    version, schema_key = classify_example(path)
+    data = load_json(path)
 
-    try:
-        instance = load_json(path)
-    except Exception as exc:
-        return ValidationResult(
-            path,
-            expected,
-            "v0.1-safety-assessment",
-            False,
-            [f"JSON load error: {exc}"],
-        )
-
-    if not isinstance(instance, dict):
-        return ValidationResult(
-            path,
-            expected,
-            "v0.1-safety-assessment",
-            False,
-            ["top-level JSON value must be an object"],
-        )
-
-    errors = schema_errors(
-        instance,
-        validator,
+    require(
+        isinstance(data, dict),
+        f"{path}: top-level JSON value must be an object",
     )
 
-    errors.extend(
-        validate_v01_semantics(
-            instance,
-            expected,
-        )
+    schema = schemas[schema_key]
+
+    structural_errors = schema_errors(data, schema)
+    semantic_errors = semantic_violations(
+        version,
+        schema_key,
+        data,
     )
 
-    return ValidationResult(
-        path,
-        expected,
-        "v0.1-safety-assessment",
-        not errors,
-        errors,
-    )
+    expected = expected_result(data)
 
-
-def validate_v02_file(
-    path: Path,
-    validators: dict[str, Draft202012Validator],
-) -> ValidationResult:
-    expected = get_expected_result_from_path(path)
-
-    try:
-        instance = load_json(path)
-    except Exception as exc:
-        return ValidationResult(
-            path,
-            expected,
-            "unknown",
-            False,
-            [f"JSON load error: {exc}"],
+    if expected not in {"PASS", "FAIL"}:
+        fail(
+            f"{path}: metadata.expected_result must be PASS or FAIL"
         )
 
-    if not isinstance(instance, dict):
-        return ValidationResult(
-            path,
-            expected,
-            "unknown",
-            False,
-            ["top-level JSON value must be an object"],
-        )
+    expected_invariants = expected_failed_invariants(data)
+    actual_invariants = set(semantic_errors)
 
-    schema_name = detect_v02_schema_name(
-        instance,
-        path,
-    )
+    relative = path.relative_to(ROOT).as_posix()
 
-    if schema_name is None:
-        return ValidationResult(
-            path,
-            expected,
-            "unknown",
-            False,
-            ["unable to determine v0.2 schema type"],
-        )
-
-    raw_schema_errors = schema_errors(
-        instance,
-        validators[schema_name],
-    )
-
-    errors: list[str] = []
-
-    # Negative fixtures may intentionally be schema-invalid.
     if expected == "PASS":
-        errors.extend(raw_schema_errors)
-
-    errors.extend(
-        V02_SEMANTIC_VALIDATORS[schema_name](
-            instance,
-            expected,
+        require(
+            not structural_errors,
+            (
+                f"{relative}: PASS fixture has schema errors:\n  - "
+                + "\n  - ".join(structural_errors)
+            ),
         )
-    )
 
-    return ValidationResult(
-        path,
+        require(
+            not semantic_errors,
+            (
+                f"{relative}: PASS fixture violates invariants: "
+                + ", ".join(semantic_errors)
+            ),
+        )
+
+        require(
+            not expected_invariants,
+            (
+                f"{relative}: PASS fixture metadata marks invariants "
+                f"as FAIL: {sorted(expected_invariants)}"
+            ),
+        )
+
+        if version in {"v0.4", "v0.5"}:
+            require(
+                data.get("signal_status") != "INVALID"
+                if version == "v0.5"
+                else data.get("bundle_status") != "INVALID",
+                f"{relative}: PASS fixture cannot have INVALID status",
+            )
+
+    else:
+        require(
+            structural_errors or semantic_errors,
+            (
+                f"{relative}: FAIL fixture unexpectedly passed both "
+                "schema and semantic validation"
+            ),
+        )
+
+        require(
+            expected_invariants,
+            (
+                f"{relative}: FAIL fixture must declare at least one "
+                "failed invariant in metadata.invariants"
+            ),
+        )
+
+        if semantic_errors:
+            require(
+                expected_invariants == actual_invariants,
+                (
+                    f"{relative}: metadata invariant failures do not "
+                    f"match semantic validator.\n"
+                    f"expected metadata: "
+                    f"{sorted(expected_invariants)}\n"
+                    f"actual semantic: "
+                    f"{sorted(actual_invariants)}"
+                ),
+            )
+
+        if version == "v0.4":
+            require(
+                data.get("bundle_status") == "INVALID",
+                (
+                    f"{relative}: v0.4 FAIL fixture must use "
+                    "bundle_status=INVALID"
+                ),
+            )
+
+        if version == "v0.5":
+            require(
+                data.get("signal_status") == "INVALID",
+                (
+                    f"{relative}: v0.5 FAIL fixture must use "
+                    "signal_status=INVALID"
+                ),
+            )
+
+    return (
+        version,
         expected,
-        schema_name,
-        not errors,
-        errors,
+        structural_errors,
+        semantic_errors,
     )
 
 
-def validate_v03_file(
-    path: Path,
-    validator: Draft202012Validator,
-) -> ValidationResult:
-    expected = get_expected_result_from_path(path)
+# ---------------------------------------------------------------------------
+# Corpus discovery
+# ---------------------------------------------------------------------------
 
-    try:
-        instance = load_json(path)
-    except Exception as exc:
-        return ValidationResult(
-            path,
-            expected,
-            "safety-receipt-bundle",
-            False,
-            [f"JSON load error: {exc}"],
+
+def discover_examples() -> list[Path]:
+    roots = [
+        EXAMPLES_DIR / "pass",
+        EXAMPLES_DIR / "fail",
+        EXAMPLES_DIR / "v0.2",
+        EXAMPLES_DIR / "v0.3",
+        EXAMPLES_DIR / "v0.4",
+        EXAMPLES_DIR / "v0.5",
+    ]
+
+    examples: list[Path] = []
+
+    for root in roots:
+        if not root.exists():
+            continue
+
+        examples.extend(
+            path
+            for path in root.rglob("*.json")
+            if path.is_file()
         )
 
-    if not isinstance(instance, dict):
-        return ValidationResult(
-            path,
-            expected,
-            "safety-receipt-bundle",
-            False,
-            ["top-level JSON value must be an object"],
-        )
+    return sorted(set(examples))
 
-    raw_schema_errors = schema_errors(
-        instance,
-        validator,
+
+# ---------------------------------------------------------------------------
+# Corpus expectations
+# ---------------------------------------------------------------------------
+
+
+EXPECTED_V05_FILES = {
+    "examples/v0.5/pass/federated-safety-signal-valid.json",
+    "examples/v0.5/fail/domain-boundary-missing.json",
+    "examples/v0.5/fail/cross-domain-authority-propagates.json",
+    "examples/v0.5/fail/signal-provenance-missing.json",
+    (
+        "examples/v0.5/fail/"
+        "remote-signal-executed-without-local-interpretation.json"
+    ),
+    (
+        "examples/v0.5/fail/"
+        "remote-containment-without-local-authorization.json"
+    ),
+    "examples/v0.5/fail/shared-threat-creates-shared-authority.json",
+    "examples/v0.5/fail/signal-propagation-unbounded.json",
+    "examples/v0.5/fail/cross-domain-signal-replay.json",
+    (
+        "examples/v0.5/fail/"
+        "remote-recovery-auto-resumes-local-domain.json"
+    ),
+    (
+        "examples/v0.5/fail/"
+        "network-action-without-federation-decision.json"
+    ),
+}
+
+
+def validate_corpus_shape(examples: list[Path]) -> None:
+    relative_paths = {
+        path.relative_to(ROOT).as_posix()
+        for path in examples
+    }
+
+    missing_v05 = EXPECTED_V05_FILES - relative_paths
+
+    require(
+        not missing_v05,
+        (
+            "Missing required v0.5 fixtures:\n  - "
+            + "\n  - ".join(sorted(missing_v05))
+        ),
     )
 
-    errors: list[str] = []
+    v05_paths = [
+        path
+        for path in examples
+        if path.relative_to(ROOT)
+        .as_posix()
+        .startswith("examples/v0.5/")
+    ]
 
-    if expected == "PASS":
-        errors.extend(raw_schema_errors)
+    v05_pass = [
+        path
+        for path in v05_paths
+        if "/pass/" in path.relative_to(ROOT).as_posix()
+    ]
 
-    errors.extend(
-        validate_v03_semantics(
-            instance,
-            expected,
-        )
+    v05_fail = [
+        path
+        for path in v05_paths
+        if "/fail/" in path.relative_to(ROOT).as_posix()
+    ]
+
+    require(
+        len(v05_pass) == 1,
+        (
+            f"v0.5 corpus must contain exactly 1 PASS fixture; "
+            f"found {len(v05_pass)}"
+        ),
     )
 
-    return ValidationResult(
-        path,
-        expected,
-        "safety-receipt-bundle",
-        not errors,
-        errors,
-    )
-
-
-def validate_v04_file(
-    path: Path,
-    validator: Draft202012Validator,
-) -> ValidationResult:
-    expected = get_expected_result_from_path(path)
-
-    try:
-        instance = load_json(path)
-    except Exception as exc:
-        return ValidationResult(
-            path,
-            expected,
-            "safety-branch-bundle",
-            False,
-            [f"JSON load error: {exc}"],
-        )
-
-    if not isinstance(instance, dict):
-        return ValidationResult(
-            path,
-            expected,
-            "safety-branch-bundle",
-            False,
-            ["top-level JSON value must be an object"],
-        )
-
-    raw_schema_errors = schema_errors(
-        instance,
-        validator,
-    )
-
-    errors: list[str] = []
-
-    # v0.4 FAIL corpus intentionally includes schema-invalid fixtures:
-    # - missing branch_id
-    # - compatibility check omitted
-    # - conflicting authority merge
-    # - merge outcome state missing
-    #
-    # Therefore structural Schema errors are fatal only for PASS fixtures.
-    if expected == "PASS":
-        errors.extend(raw_schema_errors)
-
-    errors.extend(
-        validate_v04_semantics(
-            instance,
-            expected,
-        )
-    )
-
-    return ValidationResult(
-        path,
-        expected,
-        "safety-branch-bundle",
-        not errors,
-        errors,
+    require(
+        len(v05_fail) == 10,
+        (
+            f"v0.5 corpus must contain exactly 10 FAIL fixtures; "
+            f"found {len(v05_fail)}"
+        ),
     )
 
 
-# ============================================================================
-# Output
-# ============================================================================
-
-
-def print_result(
-    result: ValidationResult,
-) -> None:
-    prefix = (
-        "[valid]"
-        if result.valid
-        else "[invalid]"
-    )
-
-    print(
-        f"{prefix} "
-        f"{relative_path(result.path)} "
-        f"({result.schema_name}, "
-        f"expected={result.expected_result})"
-    )
-
-    for error in result.errors:
-        print(f"  - {error}")
-
-
-def expected_count(
-    results: list[ValidationResult],
-    expected: str,
-) -> int:
-    return sum(
-        1
-        for result in results
-        if result.expected_result == expected
-    )
-
-
-# ============================================================================
+# ---------------------------------------------------------------------------
 # Main
-# ============================================================================
+# ---------------------------------------------------------------------------
 
 
 def main() -> int:
-    print(
-        "=== Resilient AI Safety Principles Validation ==="
-    )
+    print("=== Resilient AI Safety Principles Validation ===")
     print()
 
-    try:
-        _, v01_validator = validate_schema_document(
-            V01_SCHEMA_PATH
+    schemas: dict[str, dict[str, Any]] = {}
+
+    print("[schemas] Loading schemas")
+
+    for schema_key, schema_path in SCHEMA_FILES.items():
+        require(
+            schema_path.exists(),
+            f"Missing schema: {schema_path.relative_to(ROOT)}",
         )
 
-        v02_validators: dict[
-            str,
-            Draft202012Validator,
-        ] = {}
+        schema = load_json(schema_path)
 
-        for schema_name, schema_path in V02_SCHEMA_PATHS.items():
-            _, validator = validate_schema_document(
-                schema_path
-            )
-            v02_validators[schema_name] = validator
-
-        _, v03_validator = validate_schema_document(
-            V03_SCHEMA_PATH
+        require(
+            isinstance(schema, dict),
+            (
+                f"{schema_path.relative_to(ROOT)}: "
+                "schema must be a JSON object"
+            ),
         )
 
-        _, v04_validator = validate_schema_document(
-            V04_SCHEMA_PATH
-        )
+        Draft202012Validator.check_schema(schema)
+        schemas[schema_key] = schema
 
-    except FileNotFoundError as exc:
         print(
-            f"[fatal] required schema missing: {exc}"
+            f"  [schema-ok] "
+            f"{schema_path.relative_to(ROOT).as_posix()}"
         )
-        return 2
 
-    except json.JSONDecodeError as exc:
-        print(
-            f"[fatal] invalid schema JSON: {exc}"
-        )
-        return 2
-
-    except Exception as exc:
-        print(
-            f"[fatal] schema setup failed: {exc}"
-        )
-        return 2
-
-    v01_files = (
-        discover_json_files(V01_PASS_DIR)
-        + discover_json_files(V01_FAIL_DIR)
-    )
-
-    v02_files = (
-        discover_json_files(V02_PASS_DIR)
-        + discover_json_files(V02_FAIL_DIR)
-    )
-
-    v03_files = (
-        discover_json_files(V03_PASS_DIR)
-        + discover_json_files(V03_FAIL_DIR)
-    )
-
-    v04_files = (
-        discover_json_files(V04_PASS_DIR)
-        + discover_json_files(V04_FAIL_DIR)
-    )
-
-    if not any(
-        [
-            v01_files,
-            v02_files,
-            v03_files,
-            v04_files,
-        ]
-    ):
-        print(
-            "[fatal] no example JSON files found"
-        )
-        return 2
-
-    results: list[ValidationResult] = []
-
-    if v01_files:
-        print("## v0.1")
-        print()
-
-        for path in v01_files:
-            result = validate_v01_file(
-                path,
-                v01_validator,
-            )
-            results.append(result)
-            print_result(result)
-
-        print()
-
-    if v02_files:
-        print("## v0.2")
-        print()
-
-        for path in v02_files:
-            result = validate_v02_file(
-                path,
-                v02_validators,
-            )
-            results.append(result)
-            print_result(result)
-
-        print()
-
-    if v03_files:
-        print("## v0.3")
-        print()
-
-        for path in v03_files:
-            result = validate_v03_file(
-                path,
-                v03_validator,
-            )
-            results.append(result)
-            print_result(result)
-
-        print()
-
-    if v04_files:
-        print("## v0.4")
-        print()
-
-        for path in v04_files:
-            result = validate_v04_file(
-                path,
-                v04_validator,
-            )
-            results.append(result)
-            print_result(result)
-
-        print()
-
-    invalid_results = [
-        result
-        for result in results
-        if not result.valid
-    ]
-
-    v01_results = [
-        result
-        for result in results
-        if result.schema_name
-        == "v0.1-safety-assessment"
-    ]
-
-    v02_results = [
-        result
-        for result in results
-        if result.schema_name
-        in V02_SCHEMA_PATHS
-    ]
-
-    v03_results = [
-        result
-        for result in results
-        if result.schema_name
-        == "safety-receipt-bundle"
-    ]
-
-    v04_results = [
-        result
-        for result in results
-        if result.schema_name
-        == "safety-branch-bundle"
-    ]
-
-    print("=== Summary ===")
     print()
 
-    print(
-        "v0.1 PASS examples : "
-        f"{expected_count(v01_results, 'PASS')}"
-    )
-    print(
-        "v0.1 FAIL examples : "
-        f"{expected_count(v01_results, 'FAIL')}"
+    examples = discover_examples()
+
+    require(
+        examples,
+        "No JSON example fixtures found",
     )
 
-    print(
-        "v0.2 PASS examples : "
-        f"{expected_count(v02_results, 'PASS')}"
-    )
-    print(
-        "v0.2 FAIL examples : "
-        f"{expected_count(v02_results, 'FAIL')}"
-    )
+    validate_corpus_shape(examples)
 
-    print(
-        "v0.3 PASS examples : "
-        f"{expected_count(v03_results, 'PASS')}"
-    )
-    print(
-        "v0.3 FAIL examples : "
-        f"{expected_count(v03_results, 'FAIL')}"
-    )
+    counts: dict[str, dict[str, int]] = {}
 
-    print(
-        "v0.4 PASS examples : "
-        f"{expected_count(v04_results, 'PASS')}"
-    )
-    print(
-        "v0.4 FAIL examples : "
-        f"{expected_count(v04_results, 'FAIL')}"
-    )
+    for path in examples:
+        relative = path.relative_to(ROOT).as_posix()
 
-    print(
-        "Validated          : "
-        f"{len(results)}/{len(results)}"
-    )
+        try:
+            (
+                version,
+                expected,
+                structural_errors,
+                semantic_errors,
+            ) = validate_example(
+                path,
+                schemas,
+            )
+        except Exception as exc:
+            print(f"[FAIL] {relative}")
+            print(f"       {exc}")
+            return 1
 
-    print(
-        "Invalid            : "
-        f"{len(invalid_results)}"
-    )
-
-    if invalid_results:
-        print()
-        print(
-            "Validation reports are incomplete "
-            "or an expectation failed."
+        counts.setdefault(
+            version,
+            {
+                "PASS": 0,
+                "FAIL": 0,
+            },
         )
-        return 1
+
+        counts[version][expected] += 1
+
+        if expected == "PASS":
+            print(f"[PASS] {relative}")
+        else:
+            detected = sorted(
+                set(semantic_errors)
+                | (
+                    {"SCHEMA"}
+                    if structural_errors
+                    else set()
+                )
+            )
+
+            print(
+                f"[EXPECTED-FAIL] {relative}"
+                + (
+                    " -> " + ", ".join(detected)
+                    if detected
+                    else ""
+                )
+            )
 
     print()
+    print("=== Validation Summary ===")
+
+    version_order = [
+        "v0.1",
+        "v0.2",
+        "v0.3",
+        "v0.4",
+        "v0.5",
+    ]
+
+    total_pass = 0
+    total_fail = 0
+
+    for version in version_order:
+        values = counts.get(
+            version,
+            {
+                "PASS": 0,
+                "FAIL": 0,
+            },
+        )
+
+        total_pass += values["PASS"]
+        total_fail += values["FAIL"]
+
+        print(
+            f"{version}: "
+            f"PASS={values['PASS']} "
+            f"FAIL={values['FAIL']}"
+        )
+
     print(
-        "All examples validated successfully."
+        f"Total: PASS={total_pass} "
+        f"FAIL={total_fail} "
+        f"EXAMPLES={total_pass + total_fail}"
     )
+
+    print()
+    print("[ok] All expected validation outcomes matched.")
 
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except AssertionError as exc:
+        print(f"[fatal] {exc}")
+        sys.exit(1)
+    except json.JSONDecodeError as exc:
+        print(f"[fatal] Invalid JSON: {exc}")
+        sys.exit(1)
+    except Exception as exc:
+        print(f"[fatal] Unexpected error: {exc}")
+        sys.exit(1)
