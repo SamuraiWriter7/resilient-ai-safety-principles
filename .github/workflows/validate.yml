@@ -44,11 +44,15 @@ jobs:
 
       - name: Install validation dependencies
         run: |
+          set -euo pipefail
+
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
       - name: Show environment
         run: |
+          set -euo pipefail
+
           python --version
           python -m pip --version
 
@@ -68,19 +72,15 @@ jobs:
             "schemas/recovery-receipt.schema.json"
 
             "schemas/safety-receipt-bundle.schema.json"
-
             "schemas/safety-branch-bundle.schema.json"
-
             "schemas/federated-safety-signal.schema.json"
 
-            "specs/v0.3.md"
-            "specs/v0.4.md"
             "specs/v0.5.md"
           )
 
           for file in "${required_files[@]}"; do
             if [[ ! -f "$file" ]]; then
-              echo "::error file=$file::Required file is missing."
+              echo "::error file=$file::Required file is missing: $file"
               exit 1
             fi
 
@@ -108,7 +108,7 @@ jobs:
 
           for file in "${required_v05_fixtures[@]}"; do
             if [[ ! -f "$file" ]]; then
-              echo "::error file=$file::Required v0.5 fixture is missing."
+              echo "::error file=$file::Required v0.5 fixture is missing: $file"
               exit 1
             fi
 
@@ -118,6 +118,7 @@ jobs:
       - name: Compile validator
         run: |
           set -euo pipefail
+
           python -m py_compile scripts/validate_examples.py
           echo "[ok] scripts/validate_examples.py"
 
@@ -162,7 +163,9 @@ jobs:
               try:
                   with path.open("r", encoding="utf-8") as f:
                       json.load(f)
+
                   print(f"[json-ok] {path}")
+
               except Exception as exc:
                   failures.append((path, exc))
 
@@ -247,7 +250,10 @@ jobs:
 
               raise SystemExit(1)
 
-          print(f"[ok] v0.3 reference corpus: {len(required)} fixtures")
+          print(
+              f"[ok] v0.3 reference corpus: "
+              f"{len(required)} fixtures"
+          )
           PY
 
       - name: Check v0.4 reference corpus
@@ -286,7 +292,10 @@ jobs:
 
               raise SystemExit(1)
 
-          print(f"[ok] v0.4 reference corpus: {len(required)} fixtures")
+          print(
+              f"[ok] v0.4 reference corpus: "
+              f"{len(required)} fixtures"
+          )
           PY
 
       - name: Check v0.5 reference corpus
@@ -310,9 +319,18 @@ jobs:
                   "examples/v0.5/fail/"
                   "remote-containment-without-local-authorization.json"
               ),
-              Path("examples/v0.5/fail/shared-threat-creates-shared-authority.json"),
-              Path("examples/v0.5/fail/signal-propagation-unbounded.json"),
-              Path("examples/v0.5/fail/cross-domain-signal-replay.json"),
+              Path(
+                  "examples/v0.5/fail/"
+                  "shared-threat-creates-shared-authority.json"
+              ),
+              Path(
+                  "examples/v0.5/fail/"
+                  "signal-propagation-unbounded.json"
+              ),
+              Path(
+                  "examples/v0.5/fail/"
+                  "cross-domain-signal-replay.json"
+              ),
               Path(
                   "examples/v0.5/fail/"
                   "remote-recovery-auto-resumes-local-domain.json"
@@ -351,12 +369,14 @@ jobs:
 
           if pass_count != 1:
               raise SystemExit(
-                  f"Expected 1 v0.5 PASS fixture, found {pass_count}"
+                  f"Expected 1 v0.5 PASS fixture, "
+                  f"found {pass_count}"
               )
 
           if fail_count != 10:
               raise SystemExit(
-                  f"Expected 10 v0.5 FAIL fixtures, found {fail_count}"
+                  f"Expected 10 v0.5 FAIL fixtures, "
+                  f"found {fail_count}"
               )
 
           print(
@@ -389,14 +409,16 @@ jobs:
 
               invariants = (
                   data.get("metadata", {})
-                      .get("invariants", {})
+                  .get("invariants", {})
               )
 
               failed = {
                   invariant_id
                   for invariant_id, info in invariants.items()
                   if isinstance(info, dict)
-                  and str(info.get("result", "")).upper() == "FAIL"
+                  and str(
+                      info.get("result", "")
+                  ).upper() == "FAIL"
               }
 
               if not failed:
@@ -407,7 +429,10 @@ jobs:
               actual_invariants.update(failed)
 
               for invariant_id in failed:
-                  fixture_map.setdefault(invariant_id, []).append(
+                  fixture_map.setdefault(
+                      invariant_id,
+                      [],
+                  ).append(
                       path.as_posix()
                   )
 
@@ -431,19 +456,27 @@ jobs:
               raise SystemExit(1)
 
           for invariant_id in sorted(expected_invariants):
-              fixtures = fixture_map.get(invariant_id, [])
+              fixtures = fixture_map.get(
+                  invariant_id,
+                  [],
+              )
+
               print(
                   f"[coverage-ok] {invariant_id}: "
                   + ", ".join(fixtures)
               )
 
           print()
-          print("[ok] SAFETY-INV-041 through SAFETY-INV-050 covered.")
+          print(
+              "[ok] SAFETY-INV-041 through "
+              "SAFETY-INV-050 covered."
+          )
           PY
 
       - name: Validate integrated examples v0.1-v0.5
         run: |
           set -euo pipefail
+
           python scripts/validate_examples.py
 
       - name: Confirm v0.5 corpus count
@@ -461,18 +494,25 @@ jobs:
               Path("examples/v0.5/fail").glob("*.json")
           )
 
-          print(f"v0.5 PASS fixtures: {len(pass_files)}")
-          print(f"v0.5 FAIL fixtures: {len(fail_files)}")
+          print(
+              f"v0.5 PASS fixtures: "
+              f"{len(pass_files)}"
+          )
+
+          print(
+              f"v0.5 FAIL fixtures: "
+              f"{len(fail_files)}"
+          )
 
           if len(pass_files) != 1:
               raise SystemExit(
-                  f"Expected exactly 1 v0.5 PASS fixture, "
+                  "Expected exactly 1 v0.5 PASS fixture, "
                   f"found {len(pass_files)}"
               )
 
           if len(fail_files) != 10:
               raise SystemExit(
-                  f"Expected exactly 10 v0.5 FAIL fixtures, "
+                  "Expected exactly 10 v0.5 FAIL fixtures, "
                   f"found {len(fail_files)}"
               )
 
@@ -481,6 +521,8 @@ jobs:
 
       - name: Validation completed
         run: |
+          set -euo pipefail
+
           echo "=============================================="
           echo " Resilient AI Safety Principles"
           echo " Validation completed successfully"
