@@ -142,6 +142,9 @@ def expected_result(
         "expected_result",
     )
 
+    if not isinstance(result, str):
+        result = data.get("expected_result")
+
     if isinstance(result, str):
         normalized = result.upper()
 
@@ -169,8 +172,11 @@ def expected_failed_invariants(
         data,
         "metadata",
         "invariants",
-        default={},
+        default=None,
     )
+
+    if not isinstance(invariants, dict):
+        invariants = data.get("invariants", {})
 
     if not isinstance(invariants, dict):
         return set()
@@ -222,8 +228,11 @@ def validate_v01_semantics(
         data,
         "metadata",
         "invariants",
-        default={},
+        default=None,
     )
+
+    if not isinstance(invariants, dict):
+        invariants = data.get("invariants", {})
 
     if not isinstance(invariants, dict):
         return violations
