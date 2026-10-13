@@ -1,0 +1,226 @@
+{
+  "schema_version": "0.5.0",
+  "signal_id": "FED-SIGNAL-MISSING-PROVENANCE-001",
+  "signal_type": "SAFETY_ALERT",
+
+  "source_domain": {
+    "domain_id": "DOMAIN-A",
+    "authority_boundary_id": "AUTH-BOUNDARY-A",
+    "policy_boundary_id": "POLICY-BOUNDARY-A",
+    "execution_boundary_id": "EXEC-BOUNDARY-A",
+    "trace_boundary_id": "TRACE-BOUNDARY-A",
+    "organization_id": "ORG-A",
+    "jurisdiction": "JP"
+  },
+
+  "destination": {
+    "target_mode": "SPECIFIC_DOMAINS",
+    "target_domain_ids": [
+      "DOMAIN-B"
+    ],
+    "target_domain_class": null,
+    "federation_id": null
+  },
+
+  "provenance": {
+    "origin_event_id": "EVENT-A-043",
+    "origin_domain_id": "DOMAIN-A",
+    "issued_at": "2026-10-13T01:47:00Z",
+    "integrity_status": "UNVERIFIED",
+
+    "source_bundle_reference": "BUNDLE-A-043",
+    "source_authority_reference": "AUTH-ENV-A-043",
+    "containment_receipt_reference": "CONT-A-043",
+    "verification_record_reference": "VERIFY-A-043",
+    "recovery_receipt_reference": null,
+
+    "evidence_references": [
+      "EVIDENCE-A-043"
+    ],
+
+    "relay_chain": []
+  },
+
+  "safety_context": {
+    "severity": "HIGH",
+    "confidence": 0.88,
+    "classification": "INTEGRITY_FAILURE",
+    "summary": "Domain A reports an integrity-related safety event, but the originating trace reference is missing.",
+    "affected_resource_classes": [
+      "agent-runtime",
+      "execution-records"
+    ],
+    "source_state": "CONTAINED"
+  },
+
+  "validity": {
+    "valid_from": "2026-10-13T01:47:00Z",
+    "expires_at": "2026-10-13T02:02:00Z",
+    "ttl_seconds": 900
+  },
+
+  "propagation": {
+    "forwarding_allowed": false,
+    "max_hops": 0,
+    "current_hop": 0,
+    "scope_bounded": true,
+    "allowed_federation_paths": [
+      "DOMAIN-A->DOMAIN-B"
+    ],
+    "maximum_relay_count": 0
+  },
+
+  "replay_protection": {
+    "replay_id": "REPLAY-FED-SIGNAL-043",
+    "nonce": "NONCE-FED-043",
+    "replay_detected": false,
+    "fresh_for_current_context": true,
+    "previously_consumed": false,
+    "previous_consumption_reference": null,
+    "context_substitution_detected": false
+  },
+
+  "recommended_response": {
+    "response_type": "REVIEW",
+    "is_authoritative": false,
+    "reason": "Domain B should review the alert only after provenance can be validated."
+  },
+
+  "local_processing": {
+    "receiver_domain_id": "DOMAIN-B",
+    "provenance_validated": false,
+    "replay_checked": true,
+    "interpreted_locally": true,
+
+    "interpretation": "The source domain and event are declared, but DOMAIN-B cannot reconstruct or verify the originating safety history because origin_trace_id is missing.",
+
+    "local_decision": "HOLD_FOR_REVIEW",
+
+    "local_authority": {
+      "required": false,
+      "remote_authority_accepted": false,
+      "local_authority_granted": false,
+      "authority_reference": null,
+      "preauthorized_federation_rule_reference": null
+    },
+
+    "resulting_receipt_reference": null,
+    "local_trace_reference": "TRACE-B-LOCAL-043"
+  },
+
+  "federation_decision": null,
+
+  "trace": {
+    "signal_trace_id": "TRACE-FED-SIGNAL-043",
+    "origin_trace_preserved": false,
+    "boundary_crossing_recorded": true,
+    "receiver_trace_recorded": true,
+    "source_trace_reference": null,
+    "receiver_trace_reference": "TRACE-B-LOCAL-043",
+    "federation_trace_reference": null,
+    "trace_continuity": "PARTIAL"
+  },
+
+  "signal_status": "INVALID",
+
+  "created_at": "2026-10-13T01:47:00Z",
+  "received_at": "2026-10-13T01:48:00Z",
+  "consumed_at": null,
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "provenance_failure": {
+      "origin_domain_present": true,
+      "origin_event_present": true,
+      "origin_trace_present": false,
+      "issued_at_present": true,
+      "integrity_verified": false,
+      "evidence_reference_present": true,
+      "provenance_reconstructable": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-043",
+        "invariant": "SAFETY-INV-043",
+        "name": "Safety Signal Provenance Missing",
+        "severity": "critical",
+        "reason": "The signal does not include origin_trace_id, so the originating safety event cannot be independently reconstructed from trace."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-041": {
+        "result": "PASS",
+        "reason": "DOMAIN-A and DOMAIN-B have explicit and distinct domain and authority boundaries."
+      },
+
+      "SAFETY-INV-042": {
+        "result": "PASS",
+        "reason": "No remote authority is accepted or propagated into DOMAIN-B."
+      },
+
+      "SAFETY-INV-043": {
+        "result": "FAIL",
+        "reason": "The signal lacks origin_trace_id and therefore does not provide sufficient provenance for trusted cross-domain safety propagation."
+      },
+
+      "SAFETY-INV-044": {
+        "result": "PASS",
+        "reason": "DOMAIN-B locally interprets the incomplete signal and holds it for review instead of directly acting on it."
+      },
+
+      "SAFETY-INV-045": {
+        "result": "PASS",
+        "reason": "No remote containment is applied in DOMAIN-B."
+      },
+
+      "SAFETY-INV-046": {
+        "result": "PASS",
+        "reason": "The signal does not create shared execution authority."
+      },
+
+      "SAFETY-INV-047": {
+        "result": "PASS",
+        "reason": "Propagation is explicitly bounded by destination, expiry, TTL, and forwarding limits."
+      },
+
+      "SAFETY-INV-048": {
+        "result": "PASS",
+        "reason": "Replay checking was performed and no replay or context substitution was detected."
+      },
+
+      "SAFETY-INV-049": {
+        "result": "PASS",
+        "reason": "DOMAIN-B retains independent control over any future recovery decision."
+      },
+
+      "SAFETY-INV-050": {
+        "result": "PASS",
+        "reason": "No federation-wide action is attempted."
+      }
+    },
+
+    "risk": {
+      "source_history_unverifiable": true,
+      "forged_signal_harder_to_detect": true,
+      "audit_reconstruction_incomplete": true,
+      "trust_without_trace_possible": true,
+      "reason": "Without an origin trace reference, receivers cannot reliably verify how the safety claim was produced or whether supporting evidence belongs to the declared event."
+    },
+
+    "expected_safe_behavior": {
+      "required_signal_status": "INVALID",
+      "required_actions": [
+        "reject the signal as trusted federated safety evidence",
+        "do not act solely on the untraceable safety claim",
+        "request a valid origin_trace_id or equivalent trace reference",
+        "verify that the trace belongs to EVENT-A-043 and DOMAIN-A",
+        "re-evaluate provenance after the missing trace is supplied",
+        "preserve the provenance failure in DOMAIN-B local trace"
+      ]
+    }
+  }
+}
