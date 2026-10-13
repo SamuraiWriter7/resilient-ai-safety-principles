@@ -1,0 +1,225 @@
+{
+  "schema_version": "0.5.0",
+  "signal_id": "FED-SIGNAL-MISSING-BOUNDARY-001",
+  "signal_type": "THREAT_INDICATOR",
+
+  "source_domain": {
+    "domain_id": "DOMAIN-A",
+    "policy_boundary_id": "POLICY-BOUNDARY-A",
+    "execution_boundary_id": "EXEC-BOUNDARY-A",
+    "trace_boundary_id": "TRACE-BOUNDARY-A",
+    "organization_id": "ORG-A",
+    "jurisdiction": "JP"
+  },
+
+  "destination": {
+    "target_mode": "SPECIFIC_DOMAINS",
+    "target_domain_ids": [
+      "DOMAIN-B"
+    ],
+    "target_domain_class": null,
+    "federation_id": null
+  },
+
+  "provenance": {
+    "origin_event_id": "EVENT-A-041",
+    "origin_trace_id": "TRACE-A-041",
+    "origin_domain_id": "DOMAIN-A",
+    "issued_at": "2026-10-13T01:40:00Z",
+    "integrity_status": "VERIFIED",
+
+    "source_bundle_reference": "BUNDLE-A-041",
+    "source_authority_reference": "AUTH-ENV-A-041",
+    "containment_receipt_reference": null,
+    "verification_record_reference": "VERIFY-A-041",
+    "recovery_receipt_reference": null,
+
+    "evidence_references": [
+      "EVIDENCE-A-041"
+    ],
+
+    "relay_chain": []
+  },
+
+  "safety_context": {
+    "severity": "HIGH",
+    "confidence": 0.91,
+    "classification": "CREDENTIAL_RISK",
+    "summary": "Domain A reports suspicious credential behavior that may be relevant to Domain B.",
+    "affected_resource_classes": [
+      "service-credentials"
+    ],
+    "source_state": "OBSERVED"
+  },
+
+  "validity": {
+    "valid_from": "2026-10-13T01:40:00Z",
+    "expires_at": "2026-10-13T01:55:00Z",
+    "ttl_seconds": 900
+  },
+
+  "propagation": {
+    "forwarding_allowed": true,
+    "max_hops": 2,
+    "current_hop": 1,
+    "scope_bounded": true,
+    "allowed_federation_paths": [
+      "DOMAIN-A->DOMAIN-B"
+    ],
+    "maximum_relay_count": 2
+  },
+
+  "replay_protection": {
+    "replay_id": "REPLAY-FED-SIGNAL-041",
+    "nonce": "NONCE-FED-041",
+    "replay_detected": false,
+    "fresh_for_current_context": true,
+    "previously_consumed": false,
+    "previous_consumption_reference": null,
+    "context_substitution_detected": false
+  },
+
+  "recommended_response": {
+    "response_type": "REVIEW",
+    "is_authoritative": false,
+    "reason": "Domain B should evaluate whether the reported credential behavior applies locally."
+  },
+
+  "local_processing": {
+    "receiver_domain_id": "DOMAIN-B",
+    "provenance_validated": true,
+    "replay_checked": true,
+    "interpreted_locally": true,
+
+    "interpretation": "The safety signal is understandable, but the source authority boundary cannot be established because DOMAIN-A did not declare an authority_boundary_id.",
+
+    "local_decision": "HOLD_FOR_REVIEW",
+
+    "local_authority": {
+      "required": false,
+      "remote_authority_accepted": false,
+      "local_authority_granted": false,
+      "authority_reference": null,
+      "preauthorized_federation_rule_reference": null
+    },
+
+    "resulting_receipt_reference": null,
+    "local_trace_reference": "TRACE-B-LOCAL-041"
+  },
+
+  "federation_decision": null,
+
+  "trace": {
+    "signal_trace_id": "TRACE-FED-SIGNAL-041",
+    "origin_trace_preserved": true,
+    "boundary_crossing_recorded": false,
+    "receiver_trace_recorded": true,
+    "source_trace_reference": "TRACE-A-041",
+    "receiver_trace_reference": "TRACE-B-LOCAL-041",
+    "federation_trace_reference": null,
+    "trace_continuity": "PARTIAL"
+  },
+
+  "signal_status": "INVALID",
+
+  "created_at": "2026-10-13T01:40:00Z",
+  "received_at": "2026-10-13T01:41:00Z",
+  "consumed_at": null,
+
+  "metadata": {
+    "expected_result": "FAIL",
+    "profile": "RESILIENT",
+
+    "domain_boundary_failure": {
+      "source_domain_id": "DOMAIN-A",
+      "receiver_domain_id": "DOMAIN-B",
+      "source_domain_present": true,
+      "receiver_domain_present": true,
+      "source_authority_boundary_present": false,
+      "source_policy_boundary_present": true,
+      "source_execution_boundary_present": true,
+      "authority_transition_determinable": false
+    },
+
+    "violations": [
+      {
+        "violation_id": "FAIL-041",
+        "invariant": "SAFETY-INV-041",
+        "name": "Explicit Domain Boundary Missing",
+        "severity": "critical",
+        "reason": "DOMAIN-A does not declare an authority_boundary_id, so the cross-domain authority transition cannot be unambiguously established."
+      }
+    ],
+
+    "invariants": {
+      "SAFETY-INV-041": {
+        "result": "FAIL",
+        "reason": "The source domain lacks an explicit authority boundary, preventing reliable separation of remote and local authority."
+      },
+
+      "SAFETY-INV-042": {
+        "result": "PASS",
+        "reason": "No remote authority is accepted or propagated into DOMAIN-B."
+      },
+
+      "SAFETY-INV-043": {
+        "result": "PASS",
+        "reason": "The signal preserves origin domain, origin event, trace, timestamp, integrity status, and evidence references."
+      },
+
+      "SAFETY-INV-044": {
+        "result": "PASS",
+        "reason": "DOMAIN-B performs local interpretation rather than directly executing a remote recommendation."
+      },
+
+      "SAFETY-INV-045": {
+        "result": "PASS",
+        "reason": "No remote containment is executed in DOMAIN-B."
+      },
+
+      "SAFETY-INV-046": {
+        "result": "PASS",
+        "reason": "The shared threat information does not create shared execution authority."
+      },
+
+      "SAFETY-INV-047": {
+        "result": "PASS",
+        "reason": "Propagation remains bounded by destination, TTL, expiry, hop limit, and relay limit."
+      },
+
+      "SAFETY-INV-048": {
+        "result": "PASS",
+        "reason": "Replay checking was performed and no replay or context substitution was detected."
+      },
+
+      "SAFETY-INV-049": {
+        "result": "PASS",
+        "reason": "DOMAIN-B retains independent control over any future recovery or authorization decision."
+      },
+
+      "SAFETY-INV-050": {
+        "result": "PASS",
+        "reason": "No network-wide action or federation-level authority is attempted."
+      }
+    },
+
+    "risk": {
+      "authority_boundary_ambiguous": true,
+      "remote_local_authority_confusion_possible": true,
+      "cross_domain_audit_incomplete": true,
+      "reason": "Without an explicit source authority boundary, downstream systems cannot reliably determine where remote authority ends and local authority begins."
+    },
+
+    "expected_safe_behavior": {
+      "required_signal_status": "INVALID",
+      "required_actions": [
+        "reject the signal as fully valid federated safety input",
+        "do not infer the source authority boundary from organization or domain identity alone",
+        "require DOMAIN-A to declare a stable authority_boundary_id",
+        "record the failed boundary validation in local trace",
+        "retain the signal only as untrusted or incomplete evidence until the boundary is established",
+        "do not permit the signal to create or imply local authority"
+      ]
+    }
+  }
+}
