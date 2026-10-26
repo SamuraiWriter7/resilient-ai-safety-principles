@@ -1,0 +1,183 @@
+{
+  "version": "0.6.0",
+  "defaults": {
+    "mode": "D",
+    "core_healthy": true,
+    "pressure": 40,
+    "blade_failed": false,
+    "blade_isolated": true,
+    "swap_requested": false,
+    "old_lease_revoked": true,
+    "signature_verified": true,
+    "authority_verified": true,
+    "trace_verified": true,
+    "post_swap_verified": true,
+    "independent_reviewer": true,
+    "external_actor_control": false,
+    "common_failure": false,
+    "workers_running": true,
+    "untrusted_ingress": true
+  },
+  "cases": [
+    {
+      "id": "normal-forward",
+      "changes": {},
+      "expected": "PASS"
+    },
+    {
+      "id": "normal-reverse",
+      "changes": {
+        "mode": "R",
+        "untrusted_ingress": false
+      },
+      "expected": "PASS"
+    },
+    {
+      "id": "neutral-safe",
+      "changes": {
+        "mode": "N",
+        "untrusted_ingress": false,
+        "workers_running": false
+      },
+      "expected": "PASS"
+    },
+    {
+      "id": "park-safe",
+      "changes": {
+        "mode": "P",
+        "untrusted_ingress": false,
+        "workers_running": false
+      },
+      "expected": "PASS"
+    },
+    {
+      "id": "verified-swap",
+      "changes": {
+        "swap_requested": true
+      },
+      "expected": "PASS"
+    },
+    {
+      "id": "fail-source-control",
+      "changes": {
+        "external_actor_control": true
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-unsigned-swap",
+      "changes": {
+        "swap_requested": true,
+        "signature_verified": false
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-unauthorized-swap",
+      "changes": {
+        "swap_requested": true,
+        "authority_verified": false
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-stale-lease",
+      "changes": {
+        "swap_requested": true,
+        "old_lease_revoked": false
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-trace-unverified",
+      "changes": {
+        "swap_requested": true,
+        "trace_verified": false
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-posthealth",
+      "changes": {
+        "swap_requested": true,
+        "post_swap_verified": false
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-self-review",
+      "changes": {
+        "swap_requested": true,
+        "independent_reviewer": false
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-failed-blade-unisolated",
+      "changes": {
+        "blade_failed": true,
+        "blade_isolated": false
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-failed-blade-forward",
+      "changes": {
+        "blade_failed": true
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-critical-pressure-forward",
+      "changes": {
+        "pressure": 95
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-high-pressure-reverse",
+      "changes": {
+        "mode": "R",
+        "pressure": 87,
+        "untrusted_ingress": false
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-dead-core",
+      "changes": {
+        "core_healthy": false
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-common-failure",
+      "changes": {
+        "common_failure": true
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-neutral-ingress",
+      "changes": {
+        "mode": "N"
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-park-workers",
+      "changes": {
+        "mode": "P",
+        "untrusted_ingress": false
+      },
+      "expected": "FAIL"
+    },
+    {
+      "id": "fail-reverse-contact",
+      "changes": {
+        "mode": "R"
+      },
+      "expected": "FAIL"
+    }
+  ]
+}
